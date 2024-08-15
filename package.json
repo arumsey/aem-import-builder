@@ -1,0 +1,48 @@
+{
+  "name": "aem-import-builder",
+  "description": "Powerful AI capabilities to simplify AEM import script development.",
+  "version": "0.0.1",
+  "keywords": [
+    "aem",
+    "import",
+    "edge delivery"
+  ],
+  "author": "arumsey",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arumsey/aem-import-builder.git"
+  },
+  "bugs": {
+    "url": "git@github.com:arumsey/aem-import-builder.git/issues"
+  },
+  "homepage": "https://github.com/arumsey/aem-import-builder#readme",
+  "type": "module",
+  "main": "dist/index.js",
+  "engines": {
+    "node": ">=20.8.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "npm run clean && tsc --declaration -project tsconfig.build.json",
+    "lint": "eslint .",
+    "test": "mocha"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.9.0",
+    "@types/chai": "^4.3.17",
+    "@types/dompurify": "^3.0.5",
+    "@types/mocha": "^10.0.7",
+    "@types/node": "^22.1.0",
+    "chai": "^5.1.1",
+    "eslint": "^9.9.0",
+    "mocha": "^10.7.3",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.5.4",
+    "typescript-eslint": "^8.0.1"
+  }
+}
