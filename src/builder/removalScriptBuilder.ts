@@ -9,16 +9,17 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-const IGNORE_ELEMENTS = [
-  'style',
-  'source',
-  'script',
-  'noscript',
-  'iframe',
-];
+import {Builder} from '../importBuilder.js';
+import ImportAssistant from '../importAssistant.js';
+import TemplateBuilder from '../templateBuilder.js';
 
-async function findRemovalSelectors(content: string): Promise<string[]> {
-  return [...IGNORE_ELEMENTS];
+const SCRIPT_TEMPLATE = '/templates/removal-template.hbs';
+
+const removalScriptBuilder: Builder['buildContentRemoval'] = async (content: string) => {
+  const assistant = ImportAssistant();
+  const selectors = await assistant.findRemovalSelectors(content);
+  // merge selectors into the removal script template
+  return await TemplateBuilder.merge(SCRIPT_TEMPLATE, {selectors: JSON.stringify(selectors)});
 }
 
-export default findRemovalSelectors;
+export default removalScriptBuilder;

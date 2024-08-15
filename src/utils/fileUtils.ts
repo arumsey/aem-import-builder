@@ -9,16 +9,13 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-const IGNORE_ELEMENTS = [
-  'style',
-  'source',
-  'script',
-  'noscript',
-  'iframe',
-];
+import { readFile } from 'fs/promises';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 
-async function findRemovalSelectors(content: string): Promise<string[]> {
-  return [...IGNORE_ELEMENTS];
-}
-
-export default findRemovalSelectors;
+export const loadTextFile = async (filePath: string, rootUrl: string): Promise<string> => {
+  const __filename = fileURLToPath(rootUrl);
+  const __dirname = dirname(__filename);
+  const fullPath = join(__dirname, filePath);
+  return await readFile(fullPath, 'utf-8');
+};

@@ -10,8 +10,8 @@
  * governing permissions and limitations under the License.
  */
 
-import ImportAssistant from './importAssistant.js';
+import ImportBuilderFactory from './importBuilder.js';
 
 export {
-  ImportAssistant
+  ImportBuilderFactory
 }

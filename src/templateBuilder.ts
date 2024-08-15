@@ -9,16 +9,17 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-const IGNORE_ELEMENTS = [
-  'style',
-  'source',
-  'script',
-  'noscript',
-  'iframe',
-];
 
-async function findRemovalSelectors(content: string): Promise<string[]> {
-  return [...IGNORE_ELEMENTS];
+import Handlebars from "handlebars";
+import {loadTextFile} from './utils/fileUtils.js';
+
+const TemplateBuilder = {
+  merge: async <T extends Record<string, unknown>>(templatePath: string, data: T): Promise<string> => {
+    // Load the template file
+    const content = await loadTextFile(templatePath, import.meta.url);
+    const template = Handlebars.compile<T>(content);
+    return template(data);
+  }
 }
 
-export default findRemovalSelectors;
+export default TemplateBuilder;
