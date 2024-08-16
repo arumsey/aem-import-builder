@@ -10,7 +10,9 @@
  * governing permissions and limitations under the License.
  */
 import puppeteer, { Page } from 'puppeteer';
+import ora from 'ora';
 
+const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.5735.199 Safari/537.36';
 /**
  * Waits for the DOM to settle by using a MutationObserver.
  * @param page The Puppeteer page instance.
@@ -46,6 +48,12 @@ async function waitForDomToSettle(page: Page, timeout: number = 5000): Promise<v
 }
 
 export const fetchDocument = async (url: string): Promise<string> => {
+  const spinner = ora({
+    text: `Loading ${url}...`,
+    color: 'yellow',
+    indent: 2
+  }).start();
+
   // Launch a new browser instance
   const browser = await puppeteer.launch();
 
@@ -54,14 +62,26 @@ export const fetchDocument = async (url: string): Promise<string> => {
     const page: Page = await browser.newPage();
 
     // Set the user agent to mimic an actual Chrome browser
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.5735.199 Safari/537.36');
+    await page.setUserAgent(USER_AGENT);
 
     // Navigate to the provided URL
     await page.goto(url, { waitUntil: 'networkidle0' });
+
+    spinner.text = `Waiting for ${url} to settle...`;
     await waitForDomToSettle(page);
 
+    //get the title of the page
+    const title = await page.evaluate(() => document.title);
+
     // Get the page content (HTML)
-    return await page.evaluate(() => document.documentElement.outerHTML);
+    const documentContent = await page.evaluate(() => document.documentElement.outerHTML);
+
+    // take a screenshot
+    await page.screenshot({ path: './pageScreenshot.png', fullPage: true, type: 'png' });
+
+    spinner.succeed(`Loaded: ${title} (${documentContent.length} bytes)`);
+
+    return documentContent;
   } catch (error) {
     console.error('Error loading document:', error);
     throw error;

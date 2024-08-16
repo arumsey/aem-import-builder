@@ -10,7 +10,7 @@
  * governing permissions and limitations under the License.
  */
 
-import Handlebars from "handlebars";
+import Handlebars from 'handlebars';
 import {loadTextFile} from './utils/fileUtils.js';
 
 const TemplateBuilder = {

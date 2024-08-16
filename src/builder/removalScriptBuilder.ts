@@ -12,14 +12,23 @@
 import {Builder} from '../importBuilder.js';
 import ImportAssistant from '../importAssistant.js';
 import TemplateBuilder from '../templateBuilder.js';
+import ora from 'ora';
 
 const SCRIPT_TEMPLATE = '/templates/removal-template.hbs';
 
 const removalScriptBuilder: Builder['buildContentRemoval'] = async (content: string) => {
+  const spinner = ora({
+    text: 'Analyzing document for elements to remove',
+    color: 'yellow',
+    indent: 2
+  }).start();
   const assistant = ImportAssistant();
   const selectors = await assistant.findRemovalSelectors(content);
+  spinner.text = 'Generating removal script';
   // merge selectors into the removal script template
-  return await TemplateBuilder.merge(SCRIPT_TEMPLATE, {selectors: JSON.stringify(selectors)});
+  const script = await TemplateBuilder.merge(SCRIPT_TEMPLATE, {selectors: JSON.stringify(selectors)});
+  spinner.succeed(`Removal script with ${selectors.length} selectors created`);
+  return script;
 }
 
 export default removalScriptBuilder;
