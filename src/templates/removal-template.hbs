@@ -1,3 +1,5 @@
-export function removeElements(main) {
-    WebImporter.DOMUtils.remove(main, {{{selectors}}});
+/* global WebImporter */
+
+export default function removeElements(element, selectors) {
+  WebImporter.DOMUtils.remove(element, selectors);
 }

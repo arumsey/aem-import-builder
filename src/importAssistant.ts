@@ -9,12 +9,15 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
+import findMainContent from './assistant/findMainContent.js';
 import findRemovalSelectors from './assistant/findRemovalSelectors.js';
+import findBlocks from './assistant/findBlocks.js';
 
 const ImportAssistant = () => {
-
   return {
-    findRemovalSelectors
+    findMainContent,
+    findRemovalSelectors,
+    findBlocks
   }
 };
 

@@ -9,84 +9,45 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-import puppeteer, { Page } from 'puppeteer';
-import ora from 'ora';
 
-const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.5735.199 Safari/537.36';
-/**
- * Waits for the DOM to settle by using a MutationObserver.
- * @param page The Puppeteer page instance.
- * @param timeout The maximum amount of time to wait (in milliseconds).
- * @returns A promise that resolves when the DOM has settled.
- */
-async function waitForDomToSettle(page: Page, timeout: number = 5000): Promise<void> {
-  await page.evaluate((timeout) => {
-    return new Promise<void>((resolve) => {
-      let timer: NodeJS.Timeout | null = null;
-
-      const observer = new MutationObserver(() => {
-        if (timer) clearTimeout(timer);
-        timer = setTimeout(() => {
-          observer.disconnect();
-          resolve();
-        }, 100); // The DOM is considered settled if no changes occur for 100ms
-      });
-
-      observer.observe(document, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-        characterData: true,
-      });
-
-      setTimeout(() => {
-        observer.disconnect();
-        resolve();
-      }, timeout);
-    });
-  }, timeout);
+function removeElements(document: Document, names: string[] = []) {
+  names.forEach(tag => document.querySelectorAll(tag).forEach(el => el.remove()));
 }
 
-export const fetchDocument = async (url: string): Promise<string> => {
-  const spinner = ora({
-    text: `Loading ${url}...`,
-    color: 'yellow',
-    indent: 2
-  }).start();
+function removeAttributes(document: Document, keep: string[] = ['class']) {
+  function processElement(element: Element | null) {
+    if (!element) {
+      return;
+    }
+    // If the element has attributes, remove them except for keep
+    if (element.attributes) {
+      const attributesToKeepSet = new Set(keep);
+      // Remove all attributes (except for keep set)
+      Array.from(element.attributes)
+        .filter((attr) => !attributesToKeepSet.has(attr.name))
+        .forEach((attr) => element.removeAttribute(attr.name));
+    }
 
-  // Launch a new browser instance
-  const browser = await puppeteer.launch();
-
-  try {
-    // Open a new page
-    const page: Page = await browser.newPage();
-
-    // Set the user agent to mimic an actual Chrome browser
-    await page.setUserAgent(USER_AGENT);
-
-    // Navigate to the provided URL
-    await page.goto(url, { waitUntil: 'networkidle0' });
-
-    spinner.text = `Waiting for ${url} to settle...`;
-    await waitForDomToSettle(page);
-
-    //get the title of the page
-    const title = await page.evaluate(() => document.title);
-
-    // Get the page content (HTML)
-    const documentContent = await page.evaluate(() => document.documentElement.outerHTML);
-
-    // take a screenshot
-    await page.screenshot({ path: './pageScreenshot.png', fullPage: true, type: 'png' });
-
-    spinner.succeed(`Loaded: ${title} (${documentContent.length} bytes)`);
-
-    return documentContent;
-  } catch (error) {
-    console.error('Error loading document:', error);
-    throw error;
-  } finally {
-    // Close the browser
-    await browser.close();
+    // Recursively process each child element
+    Array.from(element.children).forEach(child => {
+      processElement(child);
+    });
   }
-};
+
+  // Start processing from the document's body or another element if needed
+  processElement(document.firstElementChild);
+}
+
+export const DocumentUtils = (document: Document) => {
+  const docUtils = {
+    removeElements: (names: string[]) => {
+      removeElements(document, names);
+      return docUtils;
+    },
+    removeAttributes: (keep?: string[]) => {
+        removeAttributes(document, keep);
+        return docUtils;
+    }
+  };
+  return docUtils;
+}

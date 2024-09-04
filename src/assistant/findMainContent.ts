@@ -10,33 +10,28 @@
  * governing permissions and limitations under the License.
  */
 
-import TemplateBuilder from '../templateBuilder.js';
 import {
   fetchChatCompletion,
   firefallJsonPayload,
-  FirefallJsonResponse,
-  FirefallPayload
+  FirefallPayload,
+  FirefallJsonResponse
 } from '../service/firefallService.js';
+import TemplateBuilder from '../templateBuilder.js';
 
-function extractStrings(obj: Record<string, string>): string[] {
-  return Object.values(obj).flatMap((value) =>
-    typeof value === 'object' ? extractStrings(value) : value
-  );
-}
-
-async function findRemovalSelectors(content: string, names: string): Promise<string[]> {
+async function findMainContent(content: string): Promise<string> {
   const escapedContent = content.replace(/"/g, '\\"');
-  const prompt = await TemplateBuilder.merge('/templates/prompt-elements.hbs', {names, content: escapedContent});
+  const prompt = await TemplateBuilder.merge('/templates/prompt-mainContent.hbs', {content: escapedContent});
   const payload: FirefallPayload = { ...firefallJsonPayload, messages: [...firefallJsonPayload.messages, { role: 'user', content: prompt }] };
   const response = await fetchChatCompletion<FirefallJsonResponse>(payload);
   const {choices = []} = response;
-  return choices.reduce((selectors, {finish_reason, message}): string[] => {
+  return choices.reduce((selector, {finish_reason, message}): string => {
     if (finish_reason === 'stop') {
       const result = JSON.parse(message.content);
-      return [...selectors, ...extractStrings(result)];
+      const [firstValue] = Object.values<string>(result);
+      return firstValue;
     }
-    return selectors;
-  }, [] as string[]);
+    return selector;
+  }, 'main');
 }
 
-export default findRemovalSelectors;
+export default findMainContent;

@@ -10,8 +10,23 @@
  * governing permissions and limitations under the License.
  */
 
-import ImportBuilderFactory from './importBuilderFactory.js';
+import { BlockRule } from 'aem-import-rules';
 
-export {
-  ImportBuilderFactory
+const defaultBlockRules: BlockRule[] = [
+  {
+    type: 'metadata',
+    insertMode: 'append',
+  },
+];
+
+async function findBlocks(content: string): Promise<BlockRule[]> {
+  const blockCandidates: BlockRule[] = [
+    {
+      type: 'columns',
+      selectors: [],
+    },
+  ];
+  return [...defaultBlockRules, ...blockCandidates];
 }
+
+export default findBlocks;

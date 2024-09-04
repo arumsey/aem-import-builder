@@ -10,8 +10,10 @@
  * governing permissions and limitations under the License.
  */
 
-import ImportBuilderFactory from './importBuilderFactory.js';
-
-export {
-  ImportBuilderFactory
-}
+export const IGNORE_ELEMENTS = [
+  'style',
+  'source',
+  'script',
+  'noscript',
+  'iframe',
+];

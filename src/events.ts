@@ -9,9 +9,13 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
+import { EventEmitter } from 'events';
 
-import ImportBuilderFactory from './importBuilderFactory.js';
-
-export {
-  ImportBuilderFactory
+export type ImportEventMap = {
+  start: [string];
+  progress: [string];
+  complete: [];
+  error: [string];
 }
+
+export const importEvents = new EventEmitter<ImportEventMap>();

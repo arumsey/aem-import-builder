@@ -10,8 +10,14 @@
  * governing permissions and limitations under the License.
  */
 
-import ImportBuilderFactory from './importBuilderFactory.js';
+import {ImportRules} from 'aem-import-rules';
+import {BuilderFileItem} from '../importBuilder.js';
 
-export {
-  ImportBuilderFactory
+type AnyImportAdapter = (...args: never[]) => Promise<BuilderFileItem[]>;
+
+export interface ImportAdapter extends Record<string, AnyImportAdapter> {
+  adaptContentRemoval: () => Promise<BuilderFileItem[]>;
+  adaptBlockNames: (blocks: string[]) => Promise<BuilderFileItem[]>;
+  adaptImportRules: (rules: ImportRules) => Promise<BuilderFileItem[]>;
+  adaptManifestFiles: (files: BuilderFileItem[]) => Promise<BuilderFileItem[]>;
 }

@@ -12,13 +12,30 @@
 
 import Handlebars from 'handlebars';
 import {loadTextFile} from './utils/fileUtils.js';
+import {fetchGist} from './service/githubService.js';
+
+Handlebars.registerHelper('title', (str: string) => {
+  return str
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+});
+
+function mergeContent<T extends Record<string, unknown>>(template: string, data: T): string {
+  const compiledTemplate = Handlebars.compile(template);
+  return compiledTemplate(data);
+}
 
 const TemplateBuilder = {
-  merge: async <T extends Record<string, unknown>>(templatePath: string, data: T): Promise<string> => {
-    // Load the template file
-    const content = await loadTextFile(templatePath, import.meta.url);
-    const template = Handlebars.compile<T>(content);
-    return template(data);
+  merge: async <T extends Record<string, unknown>>(template: string, data: T, options?: {variant: 'gist' | 'local'}): Promise<string> => {
+    const {variant = 'local'} = options || {};
+    let content: string;
+    if (variant === 'gist') {
+      content = await fetchGist(template) || '';
+    } else {
+      // Load the template file
+      content = await loadTextFile(template, import.meta.url);
+    }
+    return mergeContent(content, data);
   }
 }
 
