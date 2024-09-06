@@ -11,7 +11,7 @@
  */
 
 import Handlebars from 'handlebars';
-import {loadTextFile} from './utils/fileUtils.js';
+import {loadFromModule} from './utils/fileUtils.js';
 import {fetchGist} from './service/githubService.js';
 
 Handlebars.registerHelper('title', (str: string) => {
@@ -33,7 +33,7 @@ const TemplateBuilder = {
       content = await fetchGist(template) || '';
     } else {
       // Load the template file
-      content = await loadTextFile(template, import.meta.url);
+      content = await loadFromModule(template, import.meta.url);
     }
     return mergeContent(content, data);
   }

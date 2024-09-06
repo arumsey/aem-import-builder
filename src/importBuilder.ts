@@ -14,7 +14,14 @@ import {ImportRulesBuilder, ImportRules} from 'aem-import-rules';
 import ImportAssistant from './importAssistant.js';
 import {ImportAdapter} from './adapter/importAdapter.js';
 import {importEvents} from './events.js';
-import {IGNORE_ELEMENTS} from './constants/index.js';
+import {DocumentManifest} from './service/documentService.js';
+import {
+  buildContentRemoval,
+  buildBlocks,
+  buildImportRules,
+  buildDocumentManifest,
+  buildImporter
+} from './builder/index.js';
 
 export type BuilderFileItem = {
   name: string;
@@ -26,13 +33,28 @@ export type BuilderManifest = {
   files: BuilderFileItem[];
 }
 
-export type BuilderFunc = (...args: string[]) => Promise<BuilderManifest>;
+/**
+ * All builder functions must return a BuilderManifest. The arguments to each builder function,
+ * however can be unique to the builder function.
+ *
+ * Most builder functions will require an ImportAdapter. The AdapterBuilderArgs type
+ * ensures the first argument is always an ImportAdapter.
+ */
+export type AdapterBuilderArgs<T extends Array<unknown> = []> = [ImportAdapter, ...T];
+export type BuilderFunc<Args extends Array<unknown> = AdapterBuilderArgs> = (...args: Args) => BuilderManifest;
+export type AsyncBuilderFunc<Args extends Array<unknown> = AdapterBuilderArgs> = (...args: Args) => Promise<BuilderManifest>;
 
 export type AnyBuilder = {
-  buildProject: BuilderFunc;
-  addCleanup: BuilderFunc;
-  buildBlocks: BuilderFunc;
+  buildProject: AsyncBuilderFunc<string[]>;
+  addCleanup: AsyncBuilderFunc<string[]>;
 };
+
+type ImportBuilderOptions = {
+  document: Document;
+  adapter: ImportAdapter;
+  rules?: ImportRules;
+  documentManifest: DocumentManifest;
+}
 
 export const isBuilderFileItem = (item: unknown): item is BuilderFileItem => {
   return !!item  && typeof item === 'object' && 'name' in item && 'contents' in item && 'type' in item;
@@ -43,11 +65,11 @@ const getDuration = (start: number) => {
   return (end - start) / 1000;
 }
 
-const ImportBuilder = (document: Document, adapter: ImportAdapter, rules?: ImportRules): AnyBuilder => {
+const ImportBuilder = ({document, adapter, rules, documentManifest }: ImportBuilderOptions): AnyBuilder => {
   const importRules = ImportRulesBuilder(rules);
   const docBody = document.body.outerHTML;
 
-  const buildRootRules = async () => {
+  const addRootRule = async () => {
     const start = Date.now();
     importEvents.emit('start', 'Assistant is analyzing the document to find the main content element');
     const assistant = ImportAssistant();
@@ -57,53 +79,37 @@ const ImportBuilder = (document: Document, adapter: ImportAdapter, rules?: Impor
     importEvents.emit('complete');
   }
 
-  const buildContentRemoval: BuilderFunc = async () => {
-    importEvents.emit('start', 'Creating manifest for element removal');
-    importRules.addCleanup(IGNORE_ELEMENTS);
-    const content = await adapter.adaptContentRemoval();
-    importEvents.emit('complete');
-    return {files: content};
-  }
-
-  const buildBlocks: BuilderFunc = async () => {
-    importEvents.emit('start', 'Analyzing document for blocks');
-    const assistant = ImportAssistant();
-    const blockRules = await assistant.findBlocks(docBody);
-    blockRules.forEach(rule => importRules.addBlock(rule));
-    importEvents.emit('progress', `Creating manifest for ${blockRules.length} blocks`);
-    const content = await adapter.adaptBlockNames(blockRules.map(rule => rule.type));
-    importEvents.emit('complete');
-    return {files: content};
-  }
-
   return {
     buildProject: async () => {
       importEvents.emit('start', 'Analyzing document for project creation');
-      await buildRootRules();
-      const { files: removalFiles } = await buildContentRemoval();
-      const { files: blockFiles } = await buildBlocks();
-      // add import rules file to manifest
-      const rulesFileItem = await adapter.adaptImportRules(importRules.build());
-      // perform final adaptation of manifest files
-      const allFiles = [...removalFiles, ...blockFiles, ...rulesFileItem];
-      const content = await adapter.adaptManifestFiles(allFiles);
+      // update import rules
+      await addRootRule();
+      // build all the files
+      const { files: removalFiles } = await buildContentRemoval(adapter, importRules);
+      const { files: blockFiles } = await buildBlocks(adapter, importRules, docBody);
+      const { files: rulesFileItem } = await buildImportRules(adapter, importRules);
+      const { files: documentFileItem } = buildDocumentManifest(documentManifest);
+      const allFiles = [...removalFiles, ...blockFiles, ...rulesFileItem, ...documentFileItem];
+      const { files: importerFiles } = await buildImporter(adapter, allFiles);
       importEvents.emit('complete');
-      return {files: [...content, { name: '/sourceDoc.html', contents: docBody }]};
+      return {files: [...allFiles, ...importerFiles]};
     },
     addCleanup: async (namePrompt) => {
       if (!namePrompt) {
         return {files: []};
       }
       importEvents.emit('start', 'Assistant is analyzing the document to find elements to remove');
+      // update import rules
       const assistant = ImportAssistant();
       const selectors = await assistant.findRemovalSelectors(docBody, namePrompt);
       importRules.addCleanup(selectors);
-      const rulesFileItem = await adapter.adaptImportRules(importRules.build());
+      // get all the files that need to be updated
+      const { files: rulesFileItem } = await buildImportRules(adapter, importRules);
+      const { files: documentFileItem } = buildDocumentManifest(documentManifest);
       importEvents.emit('progress', `Added ${selectors.length} selectors to the cleanup rules`);
       importEvents.emit('complete');
-      return {files: rulesFileItem};
-    },
-    buildBlocks
+      return {files: [...rulesFileItem, ...documentFileItem]};
+    }
   }
 };
 

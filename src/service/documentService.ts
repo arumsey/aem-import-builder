@@ -11,12 +11,15 @@
  */
 import puppeteer, { Page } from 'puppeteer';
 import {minify} from 'html-minifier';
-import { JSDOM } from 'jsdom';
+import {JSDOM} from 'jsdom';
 import {importEvents} from '../events.js';
 import {DocumentUtils} from '../utils/documentUtils.js';
 import {IGNORE_ELEMENTS} from '../constants/index.js';
 
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.5735.199 Safari/537.36';
+
+export type DocumentEntry = {url: string, content: string};
+export type DocumentManifest = Set<DocumentEntry>;
 
 /**
  * Waits for the DOM to settle by using a MutationObserver.
@@ -52,9 +55,7 @@ async function waitForDomToSettle(page: Page, timeout: number = 5000): Promise<v
   }, timeout);
 }
 
-export const fetchDocument = async (url: string): Promise<Document> => {
-  importEvents.emit('start', `Fetching document from ${url}`);
-
+async function fetchUrlContent(url: string) : Promise<string> {
   // Launch a new browser instance
   const browser = await puppeteer.launch();
 
@@ -77,10 +78,36 @@ export const fetchDocument = async (url: string): Promise<Document> => {
     // Get the page content (HTML)
     const documentContent = await page.evaluate(() => document.documentElement.outerHTML);
 
-    importEvents.emit('progress', 'Minifiying document to improve analysis');
-
     // take a screenshot
     await page.screenshot({ path: './pageScreenshot.png', fullPage: true, type: 'png' });
+
+    importEvents.emit('progress', `Loaded: ${title} (${documentContent.length} bytes)`);
+
+    return documentContent;
+  } catch (error) {
+    console.error('Error loading document:', error);
+    throw error;
+  } finally {
+    // Close the browser
+    await browser.close();
+  }
+}
+
+type DocumentOptions = {
+  documents?: DocumentManifest
+}
+
+export const fetchDocument = async (url: string, options: DocumentOptions = {}): Promise<Document> => {
+  importEvents.emit('start', `Fetching document from ${url}`);
+
+  try {
+    const { documents = new Set() } = options;
+    let {content: documentContent} = Array.from(documents).find((entry) => entry.url === url) || {};
+    if (!documentContent) {
+      documentContent = await fetchUrlContent(url);
+    } else {
+      importEvents.emit('progress', `Loaded ${url} from document cache`);
+    }
 
     const minifiedContent = minify(documentContent, {
       collapseWhitespace: true,
@@ -97,20 +124,23 @@ export const fetchDocument = async (url: string): Promise<Document> => {
 
     // pre-process document
     DocumentUtils(document)
+      .removeAttributes()
       .removeElements(IGNORE_ELEMENTS)
-      .removeAttributes();
+      .removeEmptyElements();
 
-    importEvents.emit('progress', `Loaded: ${title} (${documentContent.length} bytes)`);
+    // write the document back to the manifest
+    documents.forEach((entry) => {
+      if (entry.url === url) {
+        documents.delete(entry);
+      }
+    });
+    documents.add({url, content: document.documentElement.outerHTML});
 
     importEvents.emit('complete');
-
     return document;
 
   } catch (error) {
-    console.error('Error loading document:', error);
+    console.error('Error fetching document:', error);
     throw error;
-  } finally {
-    // Close the browser
-    await browser.close();
   }
 };

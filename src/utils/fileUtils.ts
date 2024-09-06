@@ -13,7 +13,7 @@ import { readFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
-export const loadTextFile = async (filePath: string, rootUrl: string): Promise<string> => {
+export const loadFromModule = async (filePath: string, rootUrl: string): Promise<string> => {
   const __filename = fileURLToPath(rootUrl);
   const __dirname = dirname(__filename);
   const fullPath = join(__dirname, filePath);

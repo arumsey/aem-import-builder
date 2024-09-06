@@ -11,31 +11,39 @@
  */
 
 import {ImportRules} from 'aem-import-rules';
-import {fetchDocument} from './service/documentService.js';
+import {DocumentEntry, DocumentManifest, fetchDocument} from './service/documentService.js';
 import ImportBuilder, {AnyBuilder} from './importBuilder.js';
 import {ImportAdapter} from './adapter/importAdapter.js';
 import scriptImportAdapter from './adapter/scriptImportAdapter.js';
 import {importEvents} from './events.js';
 import {EventEmitter} from 'events';
 
+type ImportBuilderCreateOptions = {
+  mode?: 'script';
+  rules?: ImportRules;
+  documents?: DocumentManifest;
+}
+
 export type BuilderFactory = {
-  create: (url: string, mode?: 'script') => Promise<AnyBuilder | undefined>;
+  create: (url: string, options?: ImportBuilderCreateOptions) => Promise<AnyBuilder | undefined>;
 } & Pick<EventEmitter, 'on' | 'off'>
 
-const ImportBuilderFactory: () => BuilderFactory = () => ({
-  on: importEvents.on.bind(importEvents),
-  off: importEvents.off.bind(importEvents),
-  create: async (url, mode = 'script', rules?: ImportRules): Promise<AnyBuilder | undefined> => {
-    const doc = await fetchDocument(url);
-    let adapter: ImportAdapter | undefined;
-    if (mode === 'script') {
-      adapter = scriptImportAdapter;
+const ImportBuilderFactory: () => BuilderFactory = () => {
+  return {
+    on: importEvents.on.bind(importEvents),
+    off: importEvents.off.bind(importEvents),
+    create: async (url, {mode = 'script', rules, documents = new Set<DocumentEntry>()} = {}): Promise<AnyBuilder | undefined> => {
+      const doc = await fetchDocument(url, {documents});
+      let adapter: ImportAdapter | undefined;
+      if (mode === 'script') {
+        adapter = scriptImportAdapter;
+      }
+      if (adapter) {
+        return ImportBuilder({document: doc, adapter, rules, documentManifest: documents});
+      }
+      return undefined;
     }
-    if (adapter) {
-      return ImportBuilder(doc, adapter, rules);
-    }
-    return undefined;
   }
-});
+};
 
 export default ImportBuilderFactory;

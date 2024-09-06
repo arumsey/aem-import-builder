@@ -21,6 +21,11 @@ export default [
       }
     },
     {
+      files: ['test/**/*.ts'],
+      rules: {
+        '@typescript-eslint/no-unused-expressions': 'off'}
+    },
+    {
       ignores: ['**/*.js', '**/*.d.ts'],
     }
 ];

@@ -14,6 +14,7 @@ import esmock from 'esmock';
 import { expect } from 'chai';
 import sinon from 'sinon';
 import ImportBuilderFactory from '../src/importBuilderFactory.js';
+import {JSDOM} from 'jsdom';
 
 describe('ImportBuilderFactory', () => {
   let fetchDocumentStub: sinon.SinonStub;
@@ -40,8 +41,8 @@ describe('ImportBuilderFactory', () => {
 
     factory = ImportBuilderFactoryMock();
 
-    const doc = '<html></html>';
-    fetchDocumentStub.resolves(doc);
+    const dom = new JSDOM('<html><body>Test Document</body></html>');
+    fetchDocumentStub.resolves(dom.window.document);
 
   });
 
@@ -51,25 +52,25 @@ describe('ImportBuilderFactory', () => {
 
   it('should create an ImportBuilder with script mode', async () => {
     const url = 'http://example.com/document';
-    const builder = await factory.create(url, 'script');
+    const builder = await factory.create(url, {mode: 'script'});
     expect(builder).to.not.be.undefined;
   });
 
   it('should return undefined if no adapter is found', async () => {
     const url = 'http://example.com/document';
-    const builder = await factory.create(url, 'unknown' as unknown as 'script');
+    const builder = await factory.create(url, {mode: 'unknown' as unknown as 'script'});
     expect(builder).to.be.undefined;
   });
 
   it('should ensure fetchDocument was called with the correct URL', async () => {
     const url = 'http://example.com/document';
-    await factory.create(url, 'script');
+    await factory.create(url, {mode:'script'});
     expect(fetchDocumentStub.calledOnceWith(url)).to.be.true;
   });
 
   it('should validate the object returned by factory.create', async () => {
     const url = 'http://example.com/document';
-    const builder = await factory.create(url, 'script');
+    const builder = await factory.create(url, {mode:'script'});
     expect(builder).to.have.property('buildProject').that.is.a('function');
   });
 });

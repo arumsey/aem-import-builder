@@ -48,19 +48,19 @@ const scriptImportAdapter: ImportAdapter = {
     importEvents.emit('progress', `${filteredManifest.length} block scripts created`);
     return filteredManifest;
   },
-  adaptImportRules: async (rules) => {
+  adaptRules: async (rules) => {
     importEvents.emit('progress', 'Generating import rules script');
     const script = await TemplateBuilder.merge('import-rules-template.hbs', { rules: stringifyObject(rules)}, { variant: 'gist'});
     importEvents.emit('progress', 'Import rules created');
     return [{ name: '/import-rules.js', contents: script }];
   },
-  adaptManifestFiles: async (fileItems: BuilderFileItem[]) => {
+  adaptFileItems: async (fileItems: BuilderFileItem[]) => {
     importEvents.emit('progress', 'Customizing import script');
     const parserFiles = fileItems.filter(({type}) => type === 'parser');
     const templateData = {parsers: parserFiles.map((item) => ({ block: extractBlockName(item.name), path: `.${item.name}` }))};
     const script = await TemplateBuilder.merge('import-script-template.hbs', templateData, { variant: 'gist'});
     importEvents.emit('progress', 'Import script created');
-    return [...fileItems, { name: '/import.js', contents: script }];
+    return [{ name: '/import.js', contents: script }];
   }
 }
 

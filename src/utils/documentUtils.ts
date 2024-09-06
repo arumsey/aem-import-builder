@@ -10,11 +10,25 @@
  * governing permissions and limitations under the License.
  */
 
-function removeElements(document: Document, names: string[] = []) {
-  names.forEach(tag => document.querySelectorAll(tag).forEach(el => el.remove()));
+const DEFAULT_ATTRIBUTES = ['class', 'name', 'id', 'property', 'content'];
+
+function removeEmptyElements(document: Document) {
+  // Select all elements in the document
+  const elements = document.querySelectorAll('*');
+  // Iterate over all elements and remove the empty ones
+  elements.forEach((element) => {
+    // Check if the element has no child nodes or contains only whitespace
+    if (!element.hasChildNodes() || element.textContent?.trim() === '') {
+      element.remove();
+    }
+  });
 }
 
-function removeAttributes(document: Document, keep: string[] = ['class']) {
+function removeElements(document: Document, names: string[] = []) {
+  names.forEach((tag) => document.querySelectorAll(tag).forEach(el => el.remove()));
+}
+
+function removeAttributes(document: Document, keep = DEFAULT_ATTRIBUTES) {
   function processElement(element: Element | null) {
     if (!element) {
       return;
@@ -40,13 +54,17 @@ function removeAttributes(document: Document, keep: string[] = ['class']) {
 
 export const DocumentUtils = (document: Document) => {
   const docUtils = {
+    removeEmptyElements: () => {
+      removeEmptyElements(document);
+      return docUtils;
+    },
     removeElements: (names: string[]) => {
       removeElements(document, names);
       return docUtils;
     },
     removeAttributes: (keep?: string[]) => {
-        removeAttributes(document, keep);
-        return docUtils;
+      removeAttributes(document, keep);
+      return docUtils;
     }
   };
   return docUtils;
