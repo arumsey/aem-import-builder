@@ -11,13 +11,15 @@
  */
 import findMainContent from './assistant/findMainContent.js';
 import findRemovalSelectors from './assistant/findRemovalSelectors.js';
-import findBlocks from './assistant/findBlocks.js';
+import findBlockSelectors from './assistant/findBlocks.js';
+import findBlockCells from './assistant/findCells.js';
 
 const ImportAssistant = () => {
   return {
     findMainContent,
     findRemovalSelectors,
-    findBlocks
+    findBlockSelectors,
+    findBlockCells,
   }
 };
 

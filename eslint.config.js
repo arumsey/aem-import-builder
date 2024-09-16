@@ -17,7 +17,8 @@ export default [
       },
       rules: {
         '@stylistic/indent': ['error', 2],
-        '@stylistic/quotes': ['error', 'single']
+        '@stylistic/quotes': ['error', 'single'],
+        '@stylistic/comma-dangle': ['error', 'always-multiline']
       }
     },
     {

@@ -14,7 +14,7 @@
  * Stringify an object for inclusion in a template.
  * @param json
  */
-export function stringifyObject(json: Record<string, unknown>): string {
+export function stringifyObject(json: Record<string, unknown> | Array<unknown>): string {
   // Use JSON.stringify with a replacer to control the formatting
   let jsonString = JSON.stringify(json, (key, value) => {
     // Wrap strings in single quotes

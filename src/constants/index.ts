@@ -16,5 +16,5 @@ export const IGNORE_ELEMENTS = [
   'script',
   'noscript',
   'iframe',
-  'link'
+  'link',
 ];

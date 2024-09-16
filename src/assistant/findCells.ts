@@ -13,30 +13,37 @@
 import TemplateBuilder from '../templateBuilder.js';
 import {
   fetchChatCompletion,
-  firefallJsonPayload,
   FirefallJsonResponse,
   FirefallPayload,
+  firefallPayload,
 } from '../service/firefallService.js';
 
-function extractStrings(obj: Record<string, string>): string[] {
-  return Object.values(obj).flatMap((value) =>
-    typeof value === 'object' ? extractStrings(value) : value,
-  );
-}
+const javascriptRegex = /```javascript([\s\S]*?)```/g;
 
-async function findRemovalSelectors(content: string, names: string): Promise<string[]> {
+async function findBlockCells(content: string, screenshot: string, selectors: string[], pattern: string): Promise<string[]> {
   const escapedContent = content.replace(/"/g, '\\"');
-  const prompt = await TemplateBuilder.merge('/templates/prompt-elements.hbs', {names, content: escapedContent});
-  const payload: FirefallPayload = { ...firefallJsonPayload, messages: [...firefallJsonPayload.messages, { role: 'user', content: prompt }] };
+  if (!selectors.length || !pattern || !screenshot) {
+    return [];
+  }
+  // Just use first selector for now - TODO: handle multiple selectors in the future
+  const [selector] = selectors;
+  const prompt = await TemplateBuilder.merge('/templates/prompt-cells.hbs', {selector, pattern, content: escapedContent});
+  const payload: FirefallPayload = { ...firefallPayload };
+  payload.messages.push({ role: 'user', content: [
+    { type: 'text', text: prompt },
+  ]});
   const response = await fetchChatCompletion<FirefallJsonResponse>(payload);
   const {choices = []} = response;
-  return choices.reduce((selectors, {finish_reason, message}): string[] => {
+  return choices.reduce((parsers, {finish_reason, message}): string[] => {
     if (finish_reason === 'stop' && typeof message.content === 'string') {
-      const result = JSON.parse(message.content);
-      return [...selectors, ...extractStrings(result)];
+      const matches = message.content.matchAll(javascriptRegex);
+      [...matches].forEach((match) => {
+        const [, javascript ] = match;
+        parsers.push(javascript);
+      });
     }
-    return selectors;
+    return parsers;
   }, [] as string[]);
 }
 
-export default findRemovalSelectors;
+export default findBlockCells;

@@ -18,7 +18,7 @@ import {IGNORE_ELEMENTS} from '../constants/index.js';
 
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.5735.199 Safari/537.36';
 
-export type DocumentEntry = {url: string, content: string};
+export type DocumentEntry = {url: string, content: string, screenshot?: string};
 export type DocumentManifest = Set<DocumentEntry>;
 
 /**
@@ -55,14 +55,15 @@ async function waitForDomToSettle(page: Page, timeout: number = 5000): Promise<v
   }, timeout);
 }
 
-async function fetchUrlContent(url: string) : Promise<string> {
+async function fetchUrlContent(url: string) : Promise<[string, string]> {
   // Launch a new browser instance
   const browser = await puppeteer.launch();
 
   try {
     // Open a new page
     const page: Page = await browser.newPage();
-
+    // Disable JavaScript to speed up page loading
+    // await page.setJavaScriptEnabled(false);
     // Set the user agent to mimic an actual Chrome browser
     await page.setUserAgent(USER_AGENT);
 
@@ -79,11 +80,11 @@ async function fetchUrlContent(url: string) : Promise<string> {
     const documentContent = await page.evaluate(() => document.documentElement.outerHTML);
 
     // take a screenshot
-    await page.screenshot({ path: './pageScreenshot.png', fullPage: true, type: 'png' });
+    const screenshot = await page.screenshot({ fullPage: true, type: 'png', encoding: 'base64' });
 
     importEvents.emit('progress', `Loaded: ${title} (${documentContent.length} bytes)`);
 
-    return documentContent;
+    return [documentContent, screenshot];
   } catch (error) {
     console.error('Error loading document:', error);
     throw error;
@@ -97,29 +98,33 @@ type DocumentOptions = {
   documents?: DocumentManifest
 }
 
-export const fetchDocument = async (url: string, options: DocumentOptions = {}): Promise<Document> => {
+export type DocumentCollection = [Document, string];
+
+export const fetchDocument = async (url: string, options: DocumentOptions = {}): Promise<DocumentCollection> => {
   importEvents.emit('start', `Fetching document from ${url}`);
 
   try {
     const { documents = new Set() } = options;
-    let {content: documentContent} = Array.from(documents).find((entry) => entry.url === url) || {};
-    if (!documentContent) {
-      documentContent = await fetchUrlContent(url);
+    const documentEntry = Array.from(documents).find((entry) => entry.url === url);
+    let {content: documentContent, screenshot: documentScreenshot = ''} = documentEntry || {};
+    if (!documentEntry) {
+      [documentContent, documentScreenshot] = await fetchUrlContent(url);
+
+      documentContent = minify(documentContent, {
+        collapseWhitespace: true,
+        removeComments: true,
+        continueOnParseError: true,
+        removeEmptyAttributes: true,
+        removeEmptyElements: false,
+        removeRedundantAttributes: true,
+        removeOptionalTags: true,
+      });
+
     } else {
       importEvents.emit('progress', `Loaded ${url} from document cache`);
     }
 
-    const minifiedContent = minify(documentContent, {
-      collapseWhitespace: true,
-      removeComments: true,
-      continueOnParseError: true,
-      removeEmptyAttributes: true,
-      removeEmptyElements: true,
-      removeRedundantAttributes: true,
-      removeOptionalTags: true,
-    });
-
-    const dom = new JSDOM(minifiedContent);
+    const dom = new JSDOM(documentContent);
     const document = dom.window.document;
 
     // pre-process document
@@ -128,16 +133,19 @@ export const fetchDocument = async (url: string, options: DocumentOptions = {}):
       .removeElements(IGNORE_ELEMENTS)
       .removeEmptyElements();
 
-    // write the document back to the manifest
-    documents.forEach((entry) => {
-      if (entry.url === url) {
-        documents.delete(entry);
-      }
-    });
-    documents.add({url, content: document.documentElement.outerHTML});
+    // write the document and screenshot back to the manifest
+    if (documentEntry) {
+      documentEntry.content = document.documentElement.outerHTML;
+    } else {
+      documents.add({
+        url,
+        content: document.documentElement.outerHTML,
+        screenshot: documentScreenshot,
+      });
+    }
 
     importEvents.emit('complete');
-    return document;
+    return [document, documentScreenshot];
 
   } catch (error) {
     console.error('Error fetching document:', error);

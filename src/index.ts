@@ -13,5 +13,5 @@
 import ImportBuilderFactory from './importBuilderFactory.js';
 
 export {
-  ImportBuilderFactory
+  ImportBuilderFactory,
 }

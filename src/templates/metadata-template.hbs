@@ -14,10 +14,8 @@ function isDate(str) {
 */
 export default function parse(element, props) {
   const { document } = props;
-  // get base metadata
   const baseMetadata = WebImporter.Blocks.getMetadata(document) || {};
-  // find additional metadata
-  const customMetadata = {};
+  const customMetadata = {{{configs}}};
   const meta = { ...baseMetadata, ...customMetadata };
   Object.entries(meta).forEach(([key, value]) => {
     // use first image

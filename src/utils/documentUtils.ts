@@ -10,7 +10,8 @@
  * governing permissions and limitations under the License.
  */
 
-const DEFAULT_ATTRIBUTES = ['class', 'name', 'id', 'property', 'content'];
+const DEFAULT_ATTRIBUTES = ['style', 'class', 'name', 'id', 'property', 'content', 'src'];
+const ALLOWED_EMPTY_ELEMENTS = ['img'];
 
 function removeEmptyElements(document: Document) {
   // Select all elements in the document
@@ -18,7 +19,8 @@ function removeEmptyElements(document: Document) {
   // Iterate over all elements and remove the empty ones
   elements.forEach((element) => {
     // Check if the element has no child nodes or contains only whitespace
-    if (!element.hasChildNodes() || element.textContent?.trim() === '') {
+    if (!ALLOWED_EMPTY_ELEMENTS.includes(element.nodeName.toLowerCase())
+      && (!element.hasChildNodes() || element.textContent?.trim() === '')) {
       element.remove();
     }
   });
@@ -65,7 +67,7 @@ export const DocumentUtils = (document: Document) => {
     removeAttributes: (keep?: string[]) => {
       removeAttributes(document, keep);
       return docUtils;
-    }
+    },
   };
   return docUtils;
 }

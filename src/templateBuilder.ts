@@ -36,7 +36,7 @@ const TemplateBuilder = {
       content = await loadFromModule(template, import.meta.url);
     }
     return mergeContent(content, data);
-  }
+  },
 }
 
 export default TemplateBuilder;

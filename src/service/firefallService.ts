@@ -22,9 +22,14 @@ const FIREFALL = Object.freeze({
   URL: 'https://firefall-stage.adobe.io',
 })
 
+type FireFallContent = {
+  type: 'text' | 'image_url',
+  text?: string,
+  image_url?: { url: string}
+}
 export type FirefallMessage = {
   role: 'system' | 'user' | 'assistant';
-  content: string;
+  content: string | FireFallContent[];
 }
 
 export type FirefallPayload = {
@@ -53,17 +58,33 @@ export type FirefallJsonResponse = {
 export const firefallJsonPayload: FirefallPayload = {
   llm_metadata: {
     model_name: 'gpt-4-turbo',
-    llm_type: 'azure_chat_openai'
+    llm_type: 'azure_chat_openai',
   },
   response_format: {
-    type: 'json_object'
+    type: 'json_object',
   },
   messages: [
     {
       role: 'system',
-      content: 'You are a helpful assistant designed to output JSON.'
-    }
-  ]
+      content: 'You are a helpful assistant designed to output JSON.',
+    },
+  ],
+};
+
+export const firefallPayload: FirefallPayload = {
+  llm_metadata: {
+    model_name: 'gpt-4-turbo',
+    llm_type: 'azure_chat_openai',
+  },
+  messages: [],
+};
+
+export const firefallVisionPayload: FirefallPayload = {
+  llm_metadata: {
+    model_name: 'gpt-4-vision',
+    llm_type: 'azure_chat_openai',
+  },
+  messages: [],
 };
 
 const fetchToken = async () => {
@@ -74,7 +95,7 @@ const fetchToken = async () => {
   formData.append('grant_type', 'authorization_code');
   const response = await fetch(`${IMS.URL}/ims/token/v4`, {
     method: 'POST',
-    body: formData
+    body: formData,
   });
   const { access_token } = await response.json();
   return access_token as string;
@@ -88,9 +109,9 @@ export const fetchChatCompletion = async <T>(payload: FirefallPayload): Promise<
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${accessToken}`,
       'x-api-key': IMS.CLIENT_ID,
-      'x-gw-ims-org-id': IMS.ORG_ID
+      'x-gw-ims-org-id': IMS.ORG_ID,
     },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
   return await firefall.json() as T;
 };

@@ -42,7 +42,7 @@ const ImportBuilderFactory: () => BuilderFactory = () => {
         return ImportBuilder({document: doc, adapter, rules, documentManifest: documents});
       }
       return undefined;
-    }
+    },
   }
 };
 

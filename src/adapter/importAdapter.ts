@@ -10,7 +10,7 @@
  * governing permissions and limitations under the License.
  */
 
-import {ImportRules} from 'aem-import-rules';
+import {ImportRules, BlockRule} from 'aem-import-rules';
 import {BuilderFileItem} from '../importBuilder.js';
 
 type AnyImportAdapter = (...args: never[]) => Promise<BuilderFileItem[]>;
@@ -18,6 +18,7 @@ type AnyImportAdapter = (...args: never[]) => Promise<BuilderFileItem[]>;
 export interface ImportAdapter extends Record<string, AnyImportAdapter> {
   adaptContentRemoval: () => Promise<BuilderFileItem[]>;
   adaptBlockNames: (blocks: string[]) => Promise<BuilderFileItem[]>;
+  adaptCellParser: (block: string, script: string) => Promise<BuilderFileItem[]>;
   adaptRules: (rules: ImportRules) => Promise<BuilderFileItem[]>;
-  adaptFileItems: (files: BuilderFileItem[]) => Promise<BuilderFileItem[]>;
+  adaptBlockRules: (rules: BlockRule[]) => Promise<BuilderFileItem[]>;
 }

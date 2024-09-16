@@ -36,7 +36,7 @@ describe('ImportBuilderFactory', () => {
           on: importEventsOnStub,
           off: importEventsOffStub,
         },
-      }
+      },
     });
 
     factory = ImportBuilderFactoryMock();

@@ -10,18 +10,20 @@
  * governing permissions and limitations under the License.
  */
 
-import {ImportRulesBuilder, ImportRules} from 'aem-import-rules';
+import {ImportRulesBuilder, ImportRules, BlockRule} from 'aem-import-rules';
 import ImportAssistant from './importAssistant.js';
 import {ImportAdapter} from './adapter/importAdapter.js';
 import {importEvents} from './events.js';
-import {DocumentManifest} from './service/documentService.js';
+import {DocumentCollection, DocumentManifest} from './service/documentService.js';
 import {
   buildContentRemoval,
   buildBlocks,
   buildImportRules,
   buildDocumentManifest,
-  buildImporter
+  buildImporter,
+  buildCellParser,
 } from './builder/index.js';
+import {IGNORE_ELEMENTS} from './constants/index.js';
 
 export type BuilderFileItem = {
   name: string;
@@ -47,14 +49,21 @@ export type AsyncBuilderFunc<Args extends Array<unknown> = AdapterBuilderArgs> =
 export type AnyBuilder = {
   buildProject: AsyncBuilderFunc<string[]>;
   addCleanup: AsyncBuilderFunc<string[]>;
+  addBlock: AsyncBuilderFunc<string[]>;
+  addCells: AsyncBuilderFunc<string[]>;
 };
 
 type ImportBuilderOptions = {
-  document: Document;
+  document: DocumentCollection;
   adapter: ImportAdapter;
   rules?: ImportRules;
   documentManifest: DocumentManifest;
 }
+
+const metadataBlockRule: BlockRule = {
+  type: 'metadata',
+  insertMode: 'append',
+};
 
 export const isBuilderFileItem = (item: unknown): item is BuilderFileItem => {
   return !!item  && typeof item === 'object' && 'name' in item && 'contents' in item && 'type' in item;
@@ -67,7 +76,8 @@ const getDuration = (start: number) => {
 
 const ImportBuilder = ({document, adapter, rules, documentManifest }: ImportBuilderOptions): AnyBuilder => {
   const importRules = ImportRulesBuilder(rules);
-  const docBody = document.body.outerHTML;
+  const [dom, screenshot] = document;
+  const docBody = dom.body.outerHTML;
 
   const addRootRule = async () => {
     const start = Date.now();
@@ -84,13 +94,15 @@ const ImportBuilder = ({document, adapter, rules, documentManifest }: ImportBuil
       importEvents.emit('start', 'Analyzing document for project creation');
       // update import rules
       await addRootRule();
+      importRules.addCleanup(IGNORE_ELEMENTS);
+      importRules.addBlock(metadataBlockRule);
       // build all the files
-      const { files: removalFiles } = await buildContentRemoval(adapter, importRules);
-      const { files: blockFiles } = await buildBlocks(adapter, importRules, docBody);
+      const { files: removalFiles } = await buildContentRemoval(adapter);
+      const { files: blockFiles } = await buildBlocks(adapter, [metadataBlockRule]);
       const { files: rulesFileItem } = await buildImportRules(adapter, importRules);
       const { files: documentFileItem } = buildDocumentManifest(documentManifest);
       const allFiles = [...removalFiles, ...blockFiles, ...rulesFileItem, ...documentFileItem];
-      const { files: importerFiles } = await buildImporter(adapter, allFiles);
+      const { files: importerFiles } = await buildImporter(adapter, importRules.build().blocks);
       importEvents.emit('complete');
       return {files: [...allFiles, ...importerFiles]};
     },
@@ -109,7 +121,41 @@ const ImportBuilder = ({document, adapter, rules, documentManifest }: ImportBuil
       importEvents.emit('progress', `Added ${selectors.length} selectors to the cleanup rules`);
       importEvents.emit('complete');
       return {files: [...rulesFileItem, ...documentFileItem]};
-    }
+    },
+    addBlock: async (name, prompt) => {
+      if (!name || !prompt) {
+        return {files: []};
+      }
+      importEvents.emit('start', 'Assistant is analyzing the document to find the requested block');
+      const assistant = ImportAssistant();
+      const partialRules = await assistant.findBlockSelectors(docBody, screenshot, prompt);
+      // update import rules
+      const blockRules = partialRules.map<BlockRule>((rule) => ({...rule, type: name}));
+      blockRules.forEach((rule) => importRules.addBlock(rule));
+      // get all the files that need to be updated
+      const { files: blockFiles } = await buildBlocks(adapter, blockRules);
+      const { files: rulesFileItem } = await buildImportRules(adapter, importRules);
+      const { files: documentFileItem } = buildDocumentManifest(documentManifest);
+      const allFiles = [...blockFiles, ...rulesFileItem, ...documentFileItem];
+      const { files: importerFiles } = await buildImporter(adapter, importRules.build().blocks);
+      importEvents.emit('complete');
+      return {files: [...allFiles, ...importerFiles]};
+    },
+    addCells: async (name, prompt) => {
+      const blockRule = importRules.findBlock(name);
+      if (!blockRule || !prompt) {
+        return {files: []};
+      }
+      importEvents.emit('start', `Assistant is analyzing the document to find the cells for the ${name} block`);
+      const { selectors = [] } = blockRule;
+      const assistant = ImportAssistant();
+      const [parser] = await assistant.findBlockCells(docBody, screenshot, selectors, prompt);
+      importEvents.emit('complete');
+      // update parser files
+      const {files: parserFileItem} = await buildCellParser(adapter, blockRule, parser);
+      const { files: documentFileItem } = buildDocumentManifest(documentManifest);
+      return {files: [...parserFileItem, ...documentFileItem]};
+    },
   }
 };
 

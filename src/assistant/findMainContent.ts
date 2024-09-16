@@ -14,7 +14,7 @@ import {
   fetchChatCompletion,
   firefallJsonPayload,
   FirefallPayload,
-  FirefallJsonResponse
+  FirefallJsonResponse,
 } from '../service/firefallService.js';
 import TemplateBuilder from '../templateBuilder.js';
 
@@ -25,7 +25,7 @@ async function findMainContent(content: string): Promise<string> {
   const response = await fetchChatCompletion<FirefallJsonResponse>(payload);
   const {choices = []} = response;
   return choices.reduce((selector, {finish_reason, message}): string => {
-    if (finish_reason === 'stop') {
+    if (finish_reason === 'stop' && typeof message.content === 'string') {
       const result = JSON.parse(message.content);
       const [firstValue] = Object.values<string>(result);
       return firstValue;

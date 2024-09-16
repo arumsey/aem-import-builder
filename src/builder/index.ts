@@ -15,7 +15,8 @@ import {
   buildImportRules,
   buildDocumentManifest,
   buildContentRemoval,
-  buildImporter
+  buildImporter,
+  buildCellParser,
 } from './builder.js'
 
 export {
@@ -23,5 +24,6 @@ export {
   buildImportRules,
   buildDocumentManifest,
   buildContentRemoval,
-  buildImporter
+  buildImporter,
+  buildCellParser,
 }
