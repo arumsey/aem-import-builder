@@ -82,8 +82,8 @@ const ImportBuilder = ({document, adapter, rules, documentManifest }: ImportBuil
   const addRootRule = async () => {
     const start = Date.now();
     importEvents.emit('start', 'Assistant is analyzing the document to find the main content element');
-    const assistant = ImportAssistant();
-    const selector = await assistant.findMainContent(docBody);
+    const assistant = ImportAssistant(docBody, screenshot);
+    const selector = await assistant.findMainContent();
     importEvents.emit('progress', `Using '${selector}' as the main content element (${getDuration(start)}s)`);
     importRules.setRoot(selector);
     importEvents.emit('complete');
@@ -91,12 +91,12 @@ const ImportBuilder = ({document, adapter, rules, documentManifest }: ImportBuil
 
   return {
     buildProject: async () => {
-      importEvents.emit('start', 'Analyzing document for project creation');
       // update import rules
       await addRootRule();
       importRules.addCleanup(IGNORE_ELEMENTS);
       importRules.addBlock(metadataBlockRule);
       // build all the files
+      importEvents.emit('start', 'Creating project files');
       const { files: removalFiles } = await buildContentRemoval(adapter);
       const { files: blockFiles } = await buildBlocks(adapter, [metadataBlockRule]);
       const { files: rulesFileItem } = await buildImportRules(adapter, importRules);
@@ -110,15 +110,18 @@ const ImportBuilder = ({document, adapter, rules, documentManifest }: ImportBuil
       if (!namePrompt) {
         return {files: []};
       }
+      const start = Date.now();
       importEvents.emit('start', 'Assistant is analyzing the document to find elements to remove');
       // update import rules
-      const assistant = ImportAssistant();
-      const selectors = await assistant.findRemovalSelectors(docBody, namePrompt);
+      const assistant = ImportAssistant(docBody, screenshot);
+      const selectors = await assistant.findRemovalSelectors(namePrompt);
       importRules.addCleanup(selectors);
+      importEvents.emit('progress', `Added ${selectors.length} selectors to the cleanup rules in (${getDuration(start)}s)`);
+      importEvents.emit('complete');
       // get all the files that need to be updated
+      importEvents.emit('start', 'Creating import files');
       const { files: rulesFileItem } = await buildImportRules(adapter, importRules);
       const { files: documentFileItem } = buildDocumentManifest(documentManifest);
-      importEvents.emit('progress', `Added ${selectors.length} selectors to the cleanup rules`);
       importEvents.emit('complete');
       return {files: [...rulesFileItem, ...documentFileItem]};
     },
@@ -126,13 +129,17 @@ const ImportBuilder = ({document, adapter, rules, documentManifest }: ImportBuil
       if (!name || !prompt) {
         return {files: []};
       }
+      const start = Date.now();
       importEvents.emit('start', 'Assistant is analyzing the document to find the requested block');
-      const assistant = ImportAssistant();
-      const partialRules = await assistant.findBlockSelectors(docBody, screenshot, prompt);
+      const assistant = ImportAssistant(docBody, screenshot);
+      const partialRules = await assistant.findBlockSelectors(prompt);
       // update import rules
       const blockRules = partialRules.map<BlockRule>((rule) => ({...rule, type: name}));
       blockRules.forEach((rule) => importRules.addBlock(rule));
+      importEvents.emit('progress', `Added ${partialRules.length} blocks to the block rules in (${getDuration(start)}s)`);
+      importEvents.emit('complete');
       // get all the files that need to be updated
+      importEvents.emit('start', 'Creating import files');
       const { files: blockFiles } = await buildBlocks(adapter, blockRules);
       const { files: rulesFileItem } = await buildImportRules(adapter, importRules);
       const { files: documentFileItem } = buildDocumentManifest(documentManifest);
@@ -146,14 +153,18 @@ const ImportBuilder = ({document, adapter, rules, documentManifest }: ImportBuil
       if (!blockRule || !prompt) {
         return {files: []};
       }
+      const start = Date.now();
       importEvents.emit('start', `Assistant is analyzing the document to find the cells for the ${name} block`);
       const { selectors = [] } = blockRule;
-      const assistant = ImportAssistant();
-      const [parser] = await assistant.findBlockCells(docBody, screenshot, selectors, prompt);
+      const assistant = ImportAssistant(docBody, screenshot);
+      const [parser] = await assistant.findBlockCells(selectors, prompt);
+      importEvents.emit('progress', `Added parser script for ${name} block in (${getDuration(start)}s)`);
       importEvents.emit('complete');
       // update parser files
+      importEvents.emit('start', 'Creating import files');
       const {files: parserFileItem} = await buildCellParser(adapter, blockRule, parser);
       const { files: documentFileItem } = buildDocumentManifest(documentManifest);
+      importEvents.emit('complete');
       return {files: [...parserFileItem, ...documentFileItem]};
     },
   }

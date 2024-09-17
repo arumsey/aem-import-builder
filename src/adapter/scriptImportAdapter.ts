@@ -37,7 +37,6 @@ const scriptImportAdapter: ImportAdapter = {
   adaptContentRemoval: async () => {
     importEvents.emit('progress', 'Generating removal script');
     const script = await TemplateBuilder.merge(SCRIPT_TEMPLATE.remove, {}, { variant: 'gist'});
-    importEvents.emit('progress', 'Removal script created');
     return [{ name: '/removal-script.js', contents: script }];
   },
   adaptBlockNames: async (blocks = []) => {
@@ -56,6 +55,7 @@ const scriptImportAdapter: ImportAdapter = {
     return filteredManifest;
   },
   adaptCellParser: async (block: string, script: string) => {
+    importEvents.emit('progress', `Generating parser script for ${block} block`);
     return [{
       name: `/parsers/${block}.js`,
       contents: script,
@@ -65,14 +65,12 @@ const scriptImportAdapter: ImportAdapter = {
   adaptRules: async (rules) => {
     importEvents.emit('progress', 'Generating import rules script');
     const script = await TemplateBuilder.merge(SCRIPT_TEMPLATE.rules, { rules: stringifyObject(rules)}, { variant: 'gist'});
-    importEvents.emit('progress', 'Import rules created');
     return [{ name: '/import-rules.js', contents: script }];
   },
   adaptBlockRules: async (rules) => {
     importEvents.emit('progress', 'Customizing import script');
     const templateData = {parsers: rules.map((item) => ({ block: item.type, path: `./parsers/${item.type}.js` }))};
     const script = await TemplateBuilder.merge(SCRIPT_TEMPLATE.import, templateData, { variant: 'gist'});
-    importEvents.emit('progress', 'Import script created');
     return [{ name: '/import.js', contents: script }];
   },
 }

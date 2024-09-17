@@ -19,8 +19,7 @@ import {
 import TemplateBuilder from '../templateBuilder.js';
 
 async function findMainContent(content: string): Promise<string> {
-  const escapedContent = content.replace(/"/g, '\\"');
-  const prompt = await TemplateBuilder.merge('/templates/prompt-mainContent.hbs', {content: escapedContent});
+  const prompt = await TemplateBuilder.merge('/templates/prompt-mainContent.hbs', {content});
   const payload: FirefallPayload = { ...firefallJsonPayload, messages: [...firefallJsonPayload.messages, { role: 'user', content: prompt }] };
   const response = await fetchChatCompletion<FirefallJsonResponse>(payload);
   const {choices = []} = response;

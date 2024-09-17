@@ -9,17 +9,19 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
+
 import findMainContent from './assistant/findMainContent.js';
 import findRemovalSelectors from './assistant/findRemovalSelectors.js';
 import findBlockSelectors from './assistant/findBlocks.js';
 import findBlockCells from './assistant/findCells.js';
 
-const ImportAssistant = () => {
+const ImportAssistant = (document: string, screenshot: string) => {
+  const escapedDocument = document.replace(/"/g, '\\"');
   return {
-    findMainContent,
-    findRemovalSelectors,
-    findBlockSelectors,
-    findBlockCells,
+    findMainContent: () => findMainContent(escapedDocument),
+    findRemovalSelectors: (names: string) => findRemovalSelectors(escapedDocument, names),
+    findBlockSelectors: (pattern: string) => findBlockSelectors(escapedDocument, screenshot, pattern),
+    findBlockCells: (selectors: string[], pattern: string) => findBlockCells(escapedDocument, screenshot, selectors, pattern),
   }
 };
 

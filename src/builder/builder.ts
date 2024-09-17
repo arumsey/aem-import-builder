@@ -27,23 +27,17 @@ export const buildDocumentManifest: BuilderFunc<[DocumentManifest]> = (documentM
 }
 
 export const buildContentRemoval: AsyncBuilderFunc = async (adapter) => {
-  importEvents.emit('start', 'Creating manifest for element removal');
   const content = await adapter.adaptContentRemoval();
-  importEvents.emit('complete');
   return {files: content};
 }
 
 export const buildBlocks: AsyncBuilderFunc<AdapterBuilderArgs<[BlockRule[]]>> = async (adapter, blockRules) => {
-  importEvents.emit('start', `Creating manifest for ${blockRules.length} blocks`);
   const content = await adapter.adaptBlockNames(blockRules.map(rule => rule.type));
-  importEvents.emit('complete');
   return {files: content};
 }
 
 export const buildCellParser: AsyncBuilderFunc<AdapterBuilderArgs<[BlockRule, string]>> = async (adapter, blockRule, script) => {
-  importEvents.emit('start', `Creating manifest for ${blockRule.type} block cell parser`);
   const content = await adapter.adaptCellParser(blockRule.type, script);
-  importEvents.emit('complete');
   return {files: content};
 }
 

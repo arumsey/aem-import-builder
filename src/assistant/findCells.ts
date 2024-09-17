@@ -21,13 +21,12 @@ import {
 const javascriptRegex = /```javascript([\s\S]*?)```/g;
 
 async function findBlockCells(content: string, screenshot: string, selectors: string[], pattern: string): Promise<string[]> {
-  const escapedContent = content.replace(/"/g, '\\"');
   if (!selectors.length || !pattern || !screenshot) {
     return [];
   }
   // Just use first selector for now - TODO: handle multiple selectors in the future
   const [selector] = selectors;
-  const prompt = await TemplateBuilder.merge('/templates/prompt-cells.hbs', {selector, pattern, content: escapedContent});
+  const prompt = await TemplateBuilder.merge('/templates/prompt-cells.hbs', {selector, pattern, content});
   const payload: FirefallPayload = { ...firefallPayload };
   payload.messages.push({ role: 'user', content: [
     { type: 'text', text: prompt },

@@ -25,8 +25,7 @@ function extractStrings(obj: Record<string, string>): string[] {
 }
 
 async function findRemovalSelectors(content: string, names: string): Promise<string[]> {
-  const escapedContent = content.replace(/"/g, '\\"');
-  const prompt = await TemplateBuilder.merge('/templates/prompt-elements.hbs', {names, content: escapedContent});
+  const prompt = await TemplateBuilder.merge('/templates/prompt-elements.hbs', {names, content});
   const payload: FirefallPayload = { ...firefallJsonPayload, messages: [...firefallJsonPayload.messages, { role: 'user', content: prompt }] };
   const response = await fetchChatCompletion<FirefallJsonResponse>(payload);
   const {choices = []} = response;

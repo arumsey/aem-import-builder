@@ -22,11 +22,10 @@ import {
 const jsonRegex = /```json([\s\S]*?)```/g;
 
 async function findBlockSelectors(content: string, screenshot: string, pattern: string): Promise<Partial<BlockRule>[]> {
-  const escapedContent = content.replace(/"/g, '\\"');
   if (!pattern || !screenshot) {
     return [];
   }
-  const prompt = await TemplateBuilder.merge('/templates/prompt-block.hbs', {pattern, content: escapedContent});
+  const prompt = await TemplateBuilder.merge('/templates/prompt-block.hbs', {pattern, content});
   const payload: FirefallPayload = { ...firefallVisionPayload };
   payload.messages.push({ role: 'user', content: [
     { type: 'text', text: prompt },
