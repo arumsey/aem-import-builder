@@ -10,7 +10,6 @@
  * governing permissions and limitations under the License.
  */
 
-import {importEvents} from '../events.js';
 import {
   AdapterBuilderArgs,
   AsyncBuilderFunc,
