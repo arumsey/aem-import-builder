@@ -44,3 +44,9 @@ The following environment variables must be defined before making requests to Az
 IMS_CLIENT_SECRET
 IMS_AUTH_CODE
 ```
+
+### Templates
+
+Handlebars templates are used extensively but the import builder to generate scripts and AI prompts. Script templates are stored as publicly accessible GitHib gists.
+
+- https://gist.github.com/arumsey/a66e25a5292afcc0f34be48a84c8c548
