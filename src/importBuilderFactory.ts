@@ -54,6 +54,9 @@ const ImportBuilderFactory: (options?: AuthOptions) => BuilderFactory = (options
     off: importEvents.off.bind(importEvents),
     create: async ({mode = 'script', rules, page} = {}): Promise<AnyBuilder | undefined> => {
       const content = await minifyPage({page});
+      if (content.length === 0) {
+        throw new Error('No page content provided.');
+      }
       let adapter: ImportAdapter | undefined;
       if (mode === 'script') {
         adapter = scriptImportAdapter;
