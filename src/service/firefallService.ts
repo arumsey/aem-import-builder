@@ -10,27 +10,29 @@
  * governing permissions and limitations under the License.
  */
 
-const IMS = Object.freeze({
+export const IMS = {
   URL: 'https://ims-na1-stg1.adobelogin.com',
   CLIENT_ID: 'aem-import-as-a-service',
   ORG_ID: '154340995B76EEF60A494007@AdobeOrg',
-  CLIENT_SECRET: process.env.IMS_CLIENT_SECRET || '',
-  AUTH_CODE: process.env.IMS_AUTH_CODE || '',
-})
+  CLIENT_SECRET: '',
+  AUTH_CODE: '',
+  ACCESS_TOKEN: '',
+};
 
 const FIREFALL = Object.freeze({
   URL: 'https://firefall-stage.adobe.io',
-})
+});
 
 type FireFallContent = {
   type: 'text' | 'image_url',
   text?: string,
   image_url?: { url: string}
-}
+};
+
 export type FirefallMessage = {
   role: 'system' | 'user' | 'assistant';
   content: string | FireFallContent[];
-}
+};
 
 export type FirefallPayload = {
   llm_metadata: {
@@ -41,19 +43,19 @@ export type FirefallPayload = {
     type: 'json_object'
   },
   messages: FirefallMessage[]
-}
+};
 
 export type FirefallChoice = {
   finish_reason?: 'stop',
   message: FirefallMessage
-}
+};
 
 export type FirefallJsonResponse = {
   conversation_identifier: string | null,
   query_id: string | null,
   model: string,
   choices: FirefallChoice[]
-}
+};
 
 export const firefallJsonPayload: FirefallPayload = {
   llm_metadata: {
@@ -102,7 +104,7 @@ const fetchToken = async () => {
 }
 
 export const fetchChatCompletion = async <T>(payload: FirefallPayload): Promise<T> => {
-  const accessToken = await fetchToken();
+  const accessToken = IMS.ACCESS_TOKEN ? IMS.ACCESS_TOKEN : await fetchToken();
   const firefall = await fetch(`${FIREFALL.URL}/v2/chat/completions`, {
     method: 'POST',
     headers: {

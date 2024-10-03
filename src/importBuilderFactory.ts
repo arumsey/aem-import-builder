@@ -11,35 +11,55 @@
  */
 
 import {ImportRules} from 'aem-import-rules';
-import {DocumentEntry, DocumentManifest, fetchDocument} from './service/documentService.js';
+import {minifyPage, PageOptions} from './utils/pageUtils.js';
 import ImportBuilder, {AnyBuilder} from './importBuilder.js';
 import {ImportAdapter} from './adapter/importAdapter.js';
 import scriptImportAdapter from './adapter/scriptImportAdapter.js';
 import {importEvents} from './events.js';
 import {EventEmitter} from 'events';
+import {IMS} from './service/firefallService.js';
+
+export type AuthOptions = {
+  auth: {
+    authCode?: string;
+    clientSecret?: string;
+    accessToken?: string;
+    imsOrgId?: string;
+  }
+};
 
 type ImportBuilderCreateOptions = {
   mode?: 'script';
   rules?: ImportRules;
-  documents?: DocumentManifest;
-}
+} & PageOptions;
 
 export type BuilderFactory = {
-  create: (url: string, options?: ImportBuilderCreateOptions) => Promise<AnyBuilder | undefined>;
+  create: (options?: ImportBuilderCreateOptions) => Promise<AnyBuilder | undefined>;
 } & Pick<EventEmitter, 'on' | 'off'>
 
-const ImportBuilderFactory: () => BuilderFactory = () => {
+const ImportBuilderFactory: (options?: AuthOptions) => BuilderFactory = (options = { auth: {}}) => {
+  const { auth: {
+    authCode = '',
+    clientSecret = '',
+    accessToken = '',
+    imsOrgId = '',
+  }} = options;
+  IMS.AUTH_CODE = authCode;
+  IMS.CLIENT_SECRET = clientSecret;
+  IMS.ACCESS_TOKEN = accessToken;
+  IMS.ORG_ID = imsOrgId;
+
   return {
     on: importEvents.on.bind(importEvents),
     off: importEvents.off.bind(importEvents),
-    create: async (url, {mode = 'script', rules, documents = new Set<DocumentEntry>()} = {}): Promise<AnyBuilder | undefined> => {
-      const doc = await fetchDocument(url, {documents});
+    create: async ({mode = 'script', rules, page} = {}): Promise<AnyBuilder | undefined> => {
+      const content = await minifyPage({page});
       let adapter: ImportAdapter | undefined;
       if (mode === 'script') {
         adapter = scriptImportAdapter;
       }
       if (adapter) {
-        return ImportBuilder({document: doc, adapter, rules, documentManifest: documents});
+        return ImportBuilder({content, adapter, rules});
       }
       return undefined;
     },

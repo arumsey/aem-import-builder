@@ -13,17 +13,11 @@
 import {
   AdapterBuilderArgs,
   AsyncBuilderFunc,
-  BuilderFunc,
 } from '../importBuilder.js';
-import {DocumentManifest} from '../service/documentService.js';
 import ImportRuleBuilder from 'aem-import-rules/dist/rulebuilder.js';
 import {BlockRule} from 'aem-import-rules';
 
 type RuleBuilder = ReturnType<typeof ImportRuleBuilder>;
-
-export const buildDocumentManifest: BuilderFunc<[DocumentManifest]> = (documentManifest) => {
-  return { files: [{ name: '/documentSet.json', contents: JSON.stringify(Array.from(documentManifest)) }]}
-}
 
 export const buildContentRemoval: AsyncBuilderFunc = async (adapter) => {
   const content = await adapter.adaptContentRemoval();

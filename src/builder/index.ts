@@ -13,7 +13,6 @@
 import {
   buildBlocks,
   buildImportRules,
-  buildDocumentManifest,
   buildContentRemoval,
   buildImporter,
   buildCellParser,
@@ -22,7 +21,6 @@ import {
 export {
   buildBlocks,
   buildImportRules,
-  buildDocumentManifest,
   buildContentRemoval,
   buildImporter,
   buildCellParser,
