@@ -53,7 +53,7 @@ export type AnyBuilder = {
 };
 
 type ImportBuilderOptions = {
-  content: PageCollection;
+  content: PageCollection<Document>;
   adapter: ImportAdapter;
   rules?: ImportRules;
 };

@@ -18,6 +18,7 @@ import scriptImportAdapter from './adapter/scriptImportAdapter.js';
 import {importEvents} from './events.js';
 import {EventEmitter} from 'events';
 import {IMS} from './service/firefallService.js';
+import {builderConfig} from './config.js';
 
 export type AuthOptions = {
   auth: {
@@ -28,6 +29,10 @@ export type AuthOptions = {
   }
 };
 
+export type FactoryOptions = {
+  baseUrl?: string;
+} & AuthOptions;
+
 type ImportBuilderCreateOptions = {
   mode?: 'script';
   rules?: ImportRules;
@@ -37,17 +42,19 @@ export type BuilderFactory = {
   create: (options?: ImportBuilderCreateOptions) => Promise<AnyBuilder | undefined>;
 } & Pick<EventEmitter, 'on' | 'off'>
 
-const ImportBuilderFactory: (options?: AuthOptions) => BuilderFactory = (options = { auth: {}}) => {
-  const { auth: {
-    authCode = '',
-    clientSecret = '',
-    accessToken = '',
-    imsOrgId = '',
-  }} = options;
+const ImportBuilderFactory: (options?: FactoryOptions) => BuilderFactory = (options = { auth: {}}) => {
+  const {
+    auth: {
+      authCode = '',
+      clientSecret = '',
+      accessToken = '',
+      imsOrgId = '',
+    }} = options;
   IMS.AUTH_CODE = authCode;
   IMS.CLIENT_SECRET = clientSecret;
   IMS.ACCESS_TOKEN = accessToken;
   IMS.ORG_ID = imsOrgId;
+  builderConfig.mergeConfig(options);
 
   return {
     on: importEvents.on.bind(importEvents),

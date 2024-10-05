@@ -13,22 +13,29 @@ import {minify} from 'html-minifier-terser';
 import {DocumentUtils} from './documentUtils.js';
 import {IGNORE_ELEMENTS} from '../constants/index.js';
 
-export type PageCollection = [Document, string];
+export type PageCollection<T = string> = [T, string];
 
-export type PageOptions = {
-  page?: PageCollection
+export type PageOptions<T = string> = {
+  page?: PageCollection<T>;
+  jsdom?: unknown;
 }
 
-export const minifyPage = async (options: PageOptions = {}): Promise<PageCollection | []> => {
+function isBrowser() {
+  return typeof window !== 'undefined' && window.document;
+}
+
+/**
+ * Minify the page document content to be compatible with AI requests.
+ * @param options
+ */
+export const minifyPage = async (options: PageOptions = {}): Promise<PageCollection<Document> | []> => {
   try {
     const { page = [] } = options;
-    const [pageDocument, pageScreenshot = ''] = page;
-    if (!pageDocument) {
+    let [pageContent] = page;
+    const [, pageScreenshot = ''] = page;
+    if (!pageContent) {
       return [];
     }
-
-    const serializer = new XMLSerializer();
-    let pageContent = serializer.serializeToString(pageDocument);
 
     pageContent = await minify(pageContent, {
       collapseWhitespace: true,
@@ -40,8 +47,18 @@ export const minifyPage = async (options: PageOptions = {}): Promise<PageCollect
       removeOptionalTags: true,
     });
 
-    const parser = new DOMParser();
-    const document = parser.parseFromString(pageContent, 'text/html');
+    let document: Document;
+
+    if (isBrowser()) {
+      // Browser environment
+      const parser = new DOMParser();
+      document = parser.parseFromString(pageContent, 'text/html');
+    } else {
+      const { JSDOM } = (await import('jsdom'));
+      // Create a new JSDOM instance, which gives you access to the virtual DOM
+      const dom = new JSDOM(pageContent);
+      document = dom.window.document;
+    }
 
     // pre-process document
     DocumentUtils(document)

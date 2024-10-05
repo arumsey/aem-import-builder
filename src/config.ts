@@ -10,15 +10,17 @@
  * governing permissions and limitations under the License.
  */
 
-import {builderConfig} from '../config.js';
+import {FactoryOptions} from './importBuilderFactory.js';
 
-const TOOLS_PATH = '/tools/importer';
+type BuilderConfig = FactoryOptions;
 
-export const fetchText = async (name: string): Promise<string> => {
-  const { baseUrl = '' } = builderConfig.getConfig();
-  const res = await fetch(`${baseUrl}${TOOLS_PATH}${name}`);
-  if (res.ok) {
-    return await res.text();
-  }
-  return '';
+const config: Partial<BuilderConfig> = {
+  baseUrl: '',
 };
+
+export const builderConfig = {
+  getConfig: () => config,
+  mergeConfig: (newConfig: Partial<BuilderConfig>) => {
+    Object.assign(config, newConfig);
+  },
+}
