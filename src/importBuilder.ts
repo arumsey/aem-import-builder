@@ -14,16 +14,15 @@ import {ImportRulesBuilder, ImportRules, BlockRule} from 'aem-import-rules';
 import ImportAssistant from './importAssistant.js';
 import {ImportAdapter} from './adapter/importAdapter.js';
 import {importEvents} from './events.js';
-import {DocumentCollection, DocumentManifest} from './service/documentService.js';
 import {
   buildContentRemoval,
   buildBlocks,
   buildImportRules,
-  buildDocumentManifest,
   buildImporter,
   buildCellParser,
 } from './builder/index.js';
 import {IGNORE_ELEMENTS} from './constants/index.js';
+import {PageCollection} from './utils/pageUtils.js';
 
 export type BuilderFileItem = {
   name: string;
@@ -54,11 +53,10 @@ export type AnyBuilder = {
 };
 
 type ImportBuilderOptions = {
-  document: DocumentCollection;
+  content: PageCollection<Document>;
   adapter: ImportAdapter;
   rules?: ImportRules;
-  documentManifest: DocumentManifest;
-}
+};
 
 const metadataBlockRule: BlockRule = {
   type: 'metadata',
@@ -74,9 +72,9 @@ const getDuration = (start: number) => {
   return (end - start) / 1000;
 }
 
-const ImportBuilder = ({document, adapter, rules, documentManifest }: ImportBuilderOptions): AnyBuilder => {
+const ImportBuilder = ({content, adapter, rules }: ImportBuilderOptions): AnyBuilder => {
   const importRules = ImportRulesBuilder(rules);
-  const [dom, screenshot] = document;
+  const [dom, screenshot] = content;
   const docBody = dom.body.outerHTML;
 
   const addRootRule = async () => {
@@ -100,8 +98,7 @@ const ImportBuilder = ({document, adapter, rules, documentManifest }: ImportBuil
       const { files: removalFiles } = await buildContentRemoval(adapter);
       const { files: blockFiles } = await buildBlocks(adapter, [metadataBlockRule]);
       const { files: rulesFileItem } = await buildImportRules(adapter, importRules);
-      const { files: documentFileItem } = buildDocumentManifest(documentManifest);
-      const allFiles = [...removalFiles, ...blockFiles, ...rulesFileItem, ...documentFileItem];
+      const allFiles = [...removalFiles, ...blockFiles, ...rulesFileItem];
       const { files: importerFiles } = await buildImporter(adapter, importRules.build().blocks);
       importEvents.emit('complete');
       return {files: [...allFiles, ...importerFiles]};
@@ -121,9 +118,8 @@ const ImportBuilder = ({document, adapter, rules, documentManifest }: ImportBuil
       // get all the files that need to be updated
       importEvents.emit('start', 'Creating import files');
       const { files: rulesFileItem } = await buildImportRules(adapter, importRules);
-      const { files: documentFileItem } = buildDocumentManifest(documentManifest);
       importEvents.emit('complete');
-      return {files: [...rulesFileItem, ...documentFileItem]};
+      return {files: [...rulesFileItem]};
     },
     addBlock: async (name, prompt) => {
       if (!name || !prompt) {
@@ -142,8 +138,7 @@ const ImportBuilder = ({document, adapter, rules, documentManifest }: ImportBuil
       importEvents.emit('start', 'Creating import files');
       const { files: blockFiles } = await buildBlocks(adapter, blockRules);
       const { files: rulesFileItem } = await buildImportRules(adapter, importRules);
-      const { files: documentFileItem } = buildDocumentManifest(documentManifest);
-      const allFiles = [...blockFiles, ...rulesFileItem, ...documentFileItem];
+      const allFiles = [...blockFiles, ...rulesFileItem];
       const { files: importerFiles } = await buildImporter(adapter, importRules.build().blocks);
       importEvents.emit('complete');
       return {files: [...allFiles, ...importerFiles]};
@@ -163,9 +158,8 @@ const ImportBuilder = ({document, adapter, rules, documentManifest }: ImportBuil
       // update parser files
       importEvents.emit('start', 'Creating import files');
       const {files: parserFileItem} = await buildCellParser(adapter, blockRule, parser);
-      const { files: documentFileItem } = buildDocumentManifest(documentManifest);
       importEvents.emit('complete');
-      return {files: [...parserFileItem, ...documentFileItem]};
+      return {files: [...parserFileItem]};
     },
   }
 };

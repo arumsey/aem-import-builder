@@ -10,18 +10,17 @@
  * governing permissions and limitations under the License.
  */
 
-import {
-  buildBlocks,
-  buildImportRules,
-  buildContentRemoval,
-  buildImporter,
-  buildCellParser,
-} from './builder.js'
+import {FactoryOptions} from './importBuilderFactory.js';
 
-export {
-  buildBlocks,
-  buildImportRules,
-  buildContentRemoval,
-  buildImporter,
-  buildCellParser,
+type BuilderConfig = FactoryOptions;
+
+const config: Partial<BuilderConfig> = {
+  baseUrl: '',
+};
+
+export const builderConfig = {
+  getConfig: () => config,
+  mergeConfig: (newConfig: Partial<BuilderConfig>) => {
+    Object.assign(config, newConfig);
+  },
 }
