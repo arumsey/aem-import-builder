@@ -50,7 +50,7 @@ export type FirefallChoice = {
   message: FirefallMessage
 };
 
-export type FirefallJsonResponse = {
+export type FirefallResponse = {
   conversation_identifier: string | null,
   query_id: string | null,
   model: string,
@@ -89,6 +89,9 @@ export const firefallVisionPayload: FirefallPayload = {
   messages: [],
 };
 
+export const javascriptRegex = /```javascript([\s\S]*?)```/g;
+export const jsonRegex = /```json([\s\S]*?)```/g;
+
 const fetchToken = async () => {
   const formData: FormData = new FormData();
   formData.append('client_id', IMS.CLIENT_ID);
@@ -117,3 +120,28 @@ export const fetchChatCompletion = async <T>(payload: FirefallPayload): Promise<
   });
   return await firefall.json() as T;
 };
+
+export const reduceFirefallResponse = <T = unknown>(
+  response: FirefallResponse,
+  initialValue: T,
+  messageParser: (content: string, value: T) => T = (content) => content as T,
+): T => {
+  const {choices = []} = response;
+  return choices.reduce((value, {finish_reason, message}): T => {
+    if (finish_reason === 'stop' && typeof message.content === 'string') {
+      value = messageParser(message.content, value) || value;
+    }
+    return value;
+  }, initialValue);
+}
+
+export const reduceFirefallScriptResponse = (response: FirefallResponse) => {
+  return reduceFirefallResponse(response, [] as string[], (content, scripts) => {
+    const matches = content.matchAll(javascriptRegex);
+    [...matches].forEach((match) => {
+      const [, javascript ] = match;
+      scripts.push(javascript);
+    });
+    return scripts;
+  });
+}

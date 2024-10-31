@@ -50,8 +50,8 @@ export type AnyBuilder = {
   buildProject: AsyncBuilderFunc<string[]>;
   addCleanup: AsyncBuilderFunc<string[]>;
   addBlock: AsyncBuilderFunc<string[]>;
-  addParser: AsyncBuilderFunc<string[]>;
-  addTransformer: AsyncBuilderFunc<string[]>;
+  addCellParser: AsyncBuilderFunc<string[]>;
+  addPageTransformer: AsyncBuilderFunc<string[]>;
 };
 
 type ImportBuilderOptions = {
@@ -145,7 +145,7 @@ const ImportBuilder = ({content, adapter, rules }: ImportBuilderOptions): AnyBui
       importEvents.emit('complete');
       return {files: [...allFiles, ...importerFiles]};
     },
-    addParser: async (name, prompt) => {
+    addCellParser: async (name, prompt) => {
       const blockRule = importRules.findBlock(name);
       if (!blockRule || !prompt) {
         return {files: []};
@@ -163,7 +163,7 @@ const ImportBuilder = ({content, adapter, rules }: ImportBuilderOptions): AnyBui
       importEvents.emit('complete');
       return {files: [...parserFileItem]};
     },
-    addTransformer: async (name, prompt) => {
+    addPageTransformer: async (name, prompt) => {
       if (!name || !prompt) {
         return {files: []};
       }

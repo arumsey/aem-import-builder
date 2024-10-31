@@ -14,8 +14,9 @@ import TemplateBuilder from '../templateBuilder.js';
 import {
   fetchChatCompletion,
   firefallJsonPayload,
-  FirefallJsonResponse,
+  FirefallResponse,
   FirefallPayload,
+  reduceFirefallResponse,
 } from '../service/firefallService.js';
 
 function extractStrings(obj: Record<string, string>): string[] {
@@ -27,15 +28,11 @@ function extractStrings(obj: Record<string, string>): string[] {
 async function findRemovalSelectors(content: string, names: string): Promise<string[]> {
   const prompt = await TemplateBuilder.merge('/templates/prompt-elements.hbs', {names, content});
   const payload: FirefallPayload = { ...firefallJsonPayload, messages: [...firefallJsonPayload.messages, { role: 'user', content: prompt }] };
-  const response = await fetchChatCompletion<FirefallJsonResponse>(payload);
-  const {choices = []} = response;
-  return choices.reduce((selectors, {finish_reason, message}): string[] => {
-    if (finish_reason === 'stop' && typeof message.content === 'string') {
-      const result = JSON.parse(message.content);
-      return [...selectors, ...extractStrings(result)];
-    }
-    return selectors;
-  }, [] as string[]);
+  const response = await fetchChatCompletion<FirefallResponse>(payload);
+  return reduceFirefallResponse(response, [] as string[], (content, selectors) => {
+    const result = JSON.parse(content);
+    return [...selectors, ...extractStrings(result)];
+  });
 }
 
 export default findRemovalSelectors;

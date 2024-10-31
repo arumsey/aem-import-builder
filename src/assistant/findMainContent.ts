@@ -14,23 +14,20 @@ import {
   fetchChatCompletion,
   firefallJsonPayload,
   FirefallPayload,
-  FirefallJsonResponse,
+  FirefallResponse,
+  reduceFirefallResponse,
 } from '../service/firefallService.js';
 import TemplateBuilder from '../templateBuilder.js';
 
 async function findMainContent(content: string): Promise<string> {
   const prompt = await TemplateBuilder.merge('/templates/prompt-mainContent.hbs', {content});
   const payload: FirefallPayload = { ...firefallJsonPayload, messages: [...firefallJsonPayload.messages, { role: 'user', content: prompt }] };
-  const response = await fetchChatCompletion<FirefallJsonResponse>(payload);
-  const {choices = []} = response;
-  return choices.reduce((selector, {finish_reason, message}): string => {
-    if (finish_reason === 'stop' && typeof message.content === 'string') {
-      const result = JSON.parse(message.content);
-      const [firstValue] = Object.values<string>(result);
-      return firstValue;
-    }
-    return selector;
-  }, 'main');
+  const response = await fetchChatCompletion<FirefallResponse>(payload);
+  return reduceFirefallResponse(response, 'main', (content) => {
+    const result = JSON.parse(content);
+    const [firstValue] = Object.values<string>(result);
+    return firstValue;
+  });
 }
 
 export default findMainContent;

@@ -14,12 +14,12 @@ import { BlockRule } from 'aem-import-rules';
 import TemplateBuilder from '../templateBuilder.js';
 import {
   fetchChatCompletion,
-  FirefallJsonResponse,
+  FirefallResponse,
   FirefallPayload,
   firefallVisionPayload,
+  reduceFirefallResponse,
+  jsonRegex,
 } from '../service/firefallService.js';
-
-const jsonRegex = /```json([\s\S]*?)```/g;
 
 async function findBlockSelectors(content: string, screenshot: string, pattern: string): Promise<Partial<BlockRule>[]> {
   if (!pattern || !screenshot) {
@@ -31,21 +31,18 @@ async function findBlockSelectors(content: string, screenshot: string, pattern: 
     { type: 'text', text: prompt },
     { type: 'image_url', image_url: { url: `data:image/png;base64,${screenshot}` } },
   ] });
-  const response = await fetchChatCompletion<FirefallJsonResponse>(payload);
+  const response = await fetchChatCompletion<FirefallResponse>(payload);
   // extract selectors from response
-  const {choices = []} = response;
-  return choices.reduce((rules, {finish_reason, message}): Partial<BlockRule>[] => {
-    if (finish_reason === 'stop' && typeof message.content === 'string') {
-      const matches = message.content.matchAll(jsonRegex);
-      const [blockRule] = rules;
-      [...matches].forEach((match) => {
-        const [, json ] = match;
-        const selectors = JSON.parse(json);
-        blockRule.selectors = [...blockRule.selectors || [], ...selectors];
-      });
-    }
+  return reduceFirefallResponse(response, [{selectors: []}] as Partial<BlockRule>[], (content, rules) => {
+    const matches = content.matchAll(jsonRegex);
+    const [blockRule] = rules;
+    [...matches].forEach((match) => {
+      const [, json ] = match;
+      const selectors = JSON.parse(json);
+      blockRule.selectors = [...blockRule.selectors || [], ...selectors];
+    });
     return rules;
-  }, [{selectors: []}] as Partial<BlockRule>[]);
+  });
 }
 
 export default findBlockSelectors;

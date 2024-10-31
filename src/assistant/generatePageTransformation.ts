@@ -13,12 +13,11 @@
 import TemplateBuilder from '../templateBuilder.js';
 import {
   fetchChatCompletion,
-  FirefallJsonResponse,
+  FirefallResponse,
   FirefallPayload,
   firefallPayload,
+  reduceFirefallScriptResponse,
 } from '../service/firefallService.js';
-
-const javascriptRegex = /```javascript([\s\S]*?)```/g;
 
 async function generatePageTransformation(content: string, pattern: string): Promise<string[]> {
   if (!pattern) {
@@ -29,18 +28,8 @@ async function generatePageTransformation(content: string, pattern: string): Pro
   payload.messages.push({ role: 'user', content: [
     { type: 'text', text: prompt },
   ]});
-  const response = await fetchChatCompletion<FirefallJsonResponse>(payload);
-  const {choices = []} = response;
-  return choices.reduce((parsers, {finish_reason, message}): string[] => {
-    if (finish_reason === 'stop' && typeof message.content === 'string') {
-      const matches = message.content.matchAll(javascriptRegex);
-      [...matches].forEach((match) => {
-        const [, javascript ] = match;
-        parsers.push(javascript);
-      });
-    }
-    return parsers;
-  }, [] as string[]);
+  const response = await fetchChatCompletion<FirefallResponse>(payload);
+  return reduceFirefallScriptResponse(response);
 }
 
 export default generatePageTransformation;
