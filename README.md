@@ -8,7 +8,7 @@ Coming soon
 
 ## Developer Guide
 
-Ensure you understand the [architecture](./wiki).
+Ensure you understand the [architecture](https://github.com/arumsey/aem-import-builder/wiki).
 
 ### Install
 
