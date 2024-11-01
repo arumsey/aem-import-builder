@@ -16,6 +16,7 @@ import {
   buildContentRemoval,
   buildImporter,
   buildCellParser,
+  buildPageTransformer,
 } from './builder.js'
 
 export {
@@ -24,4 +25,5 @@ export {
   buildContentRemoval,
   buildImporter,
   buildCellParser,
+  buildPageTransformer,
 }

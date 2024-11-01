@@ -10,24 +10,26 @@
  * governing permissions and limitations under the License.
  */
 
+import TemplateBuilder from '../templateBuilder.js';
 import {
   fetchChatCompletion,
-  firefallJsonPayload,
-  FirefallPayload,
   FirefallResponse,
-  reduceFirefallResponse,
+  FirefallPayload,
+  firefallPayload,
+  reduceFirefallScriptResponse,
 } from '../service/firefallService.js';
-import TemplateBuilder from '../templateBuilder.js';
 
-async function findMainContent(content: string): Promise<string> {
-  const prompt = await TemplateBuilder.merge('/templates/prompt-mainContent.hbs', {content});
-  const payload: FirefallPayload = { ...firefallJsonPayload, messages: [...firefallJsonPayload.messages, { role: 'user', content: prompt }] };
+async function generatePageTransformation(content: string, pattern: string): Promise<string[]> {
+  if (!pattern) {
+    return [];
+  }
+  const prompt = await TemplateBuilder.merge('/templates/prompt-transform.hbs', {pattern, content});
+  const payload: FirefallPayload = { ...firefallPayload };
+  payload.messages.push({ role: 'user', content: [
+    { type: 'text', text: prompt },
+  ]});
   const response = await fetchChatCompletion<FirefallResponse>(payload);
-  return reduceFirefallResponse(response, 'main', (content) => {
-    const result = JSON.parse(content);
-    const [firstValue] = Object.values<string>(result);
-    return firstValue;
-  });
+  return reduceFirefallScriptResponse(response);
 }
 
-export default findMainContent;
+export default generatePageTransformation;

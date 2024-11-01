@@ -14,6 +14,7 @@ import findMainContent from './assistant/findMainContent.js';
 import findRemovalSelectors from './assistant/findRemovalSelectors.js';
 import findBlockSelectors from './assistant/findBlocks.js';
 import findBlockCells from './assistant/findCells.js';
+import generatePageTransformation from './assistant/generatePageTransformation.js';
 
 const ImportAssistant = (document: string, screenshot: string) => {
   const escapedDocument = document.replace(/"/g, '\\"');
@@ -22,6 +23,7 @@ const ImportAssistant = (document: string, screenshot: string) => {
     findRemovalSelectors: (names: string) => findRemovalSelectors(escapedDocument, names),
     findBlockSelectors: (pattern: string) => findBlockSelectors(escapedDocument, screenshot, pattern),
     findBlockCells: (selectors: string[], pattern: string) => findBlockCells(escapedDocument, screenshot, selectors, pattern),
+    generatePageTransformation: (pattern: string) => generatePageTransformation(escapedDocument, pattern),
   }
 };
 

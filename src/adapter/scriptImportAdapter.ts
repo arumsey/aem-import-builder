@@ -62,14 +62,26 @@ const scriptImportAdapter: ImportAdapter = {
       type: 'parser',
     }];
   },
+  adaptPageTransformer: async (name: string, script: string) => {
+    importEvents.emit('progress', 'Generating transformer script');
+    return [{
+      name: `/transformers/${name}.js`,
+      contents: script,
+      type: 'transformer',
+    }];
+  },
   adaptRules: async (rules) => {
     importEvents.emit('progress', 'Generating import rules script');
     const script = await TemplateBuilder.merge(SCRIPT_TEMPLATE.rules, { rules: stringifyObject(rules)}, { variant: 'gist'});
     return [{ name: '/import-rules.js', contents: script }];
   },
-  adaptBlockRules: async (rules) => {
+  adaptImport: async (rules) => {
     importEvents.emit('progress', 'Customizing import script');
-    const templateData = {parsers: rules.map((item) => ({ block: item.type, path: `./parsers/${item.type}.js` }))};
+    const { blocks: blockRules = [], transformers: transformRules = []} = rules;
+    const templateData = {
+      parsers: blockRules.map((item) => ({ block: item.type, path: `./parsers/${item.type}.js` })),
+      transformers: transformRules.map((item) => ({ name: item.name, path: `./transformers/${item.name}.js` })),
+    };
     const script = await TemplateBuilder.merge(SCRIPT_TEMPLATE.import, templateData, { variant: 'gist'});
     return [{ name: '/import.js', contents: script }];
   },

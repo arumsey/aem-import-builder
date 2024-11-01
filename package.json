@@ -34,7 +34,7 @@
     "test": "mocha"
   },
   "dependencies": {
-    "aem-import-rules": "^0.0.2",
+    "aem-import-rules": "^0.1.0",
     "events": "^3.3.0",
     "handlebars": "^4.7.8",
     "html-minifier-terser": "^7.2.0"
