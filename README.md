@@ -8,7 +8,7 @@ Coming soon
 
 ## Developer Guide
 
-Ensure you understand the [architecture](./wiki).
+Ensure you understand the [architecture](https://github.com/arumsey/aem-import-builder/wiki).
 
 ### Install
 
@@ -55,6 +55,6 @@ IMS_AUTH_CODE
 
 ### Templates
 
-Handlebars templates are used extensively but the import builder to generate scripts and AI prompts. Script templates are stored as publicly accessible GitHib gists.
+Handlebars templates are used extensively by the import builder to generate scripts and AI prompts. Script templates are stored as publicly accessible GitHib gists.
 
 - https://gist.github.com/arumsey/a66e25a5292afcc0f34be48a84c8c548
