@@ -4,7 +4,88 @@ Powerful AI capabilities to simplify AEM import script development.
 
 ## Usage
 
-Coming soon
+Accessing the AEM Import Builder is achieved by using the `ImportBuilderFactory` to create an `ImportBuilder` instance.
+
+Visit the [aem-import-helper](https://github.com/adobe/aem-import-helper/blob/main/src/assistant/assistant-helper.js) for a full example of how to use the AEM Import Builder.
+
+### Import Builder Factory
+
+The `ImportBuilderFactory` is responsible for managing authentication and emitting events during builder operations.
+The `create` method of the factory returns an `ImportBuilder` instance that can be used to build an AEM import script.
+An `ImportBuilder` must be given a sample HTML document and screenshot to operate against. A set of existing import rules
+can also be provided when building on top of an existing project.
+
+```typescript
+import { ImportBuilderFactory } from 'aem-import-builder';
+
+const factory = ImportBuilderFactory({ auth, baseUrl });
+factory.on('start', (msg) => {
+  // start message
+});
+factory.on('progress', (msg) => {
+  // progress message
+});
+factory.on('complete', () => {
+  // complete message
+});
+
+// rules is in import rules JSON object
+// page is array containing an HTML document string and a Base64 encoded screenshot string
+const builder = factory.create({mode: 'script', rules, page});
+```
+
+### Import Builder
+
+An `ImportBuilder` consists of several asynchronous builder functions that all return a manifest of builder file items.
+The `BuilderManifest` is a list of files that can be used to create an AEM import script.
+
+```typescript
+export type BuilderFileItem = {
+  name: string;
+  type?: 'parser' | 'transformer';
+  contents: string;
+}
+```
+
+### Build Project
+
+Build a new import project that includes an initial import script and a set of import rules.
+
+```typescript
+const manifest = await builder.buildProject();
+```
+
+### Cleanup
+
+Add cleanup rules to the import rules that will remove unnecessary elements from the document being imported.
+
+```typescript
+const manifest = await builder.addCleanup('breadcrumbs');
+```
+
+### Blocks
+
+Add block rules to the import rules that will identify and extract blocks of content from the document being imported.
+
+```typescript
+const manifest = await builder.addBlock('block-name', 'block description');
+```
+
+### Block Cells
+
+Add a block cell parser script to the import project that will add content to a block.
+
+```typescript
+const manifest = await builder.addCellParser('block-name', 'description of cell content');
+```
+
+### Page Transformation
+
+Add a page transformation script to the import project that will transform the document content.
+
+```typescript
+const manifest = await builder.addPageTransformer('transformer-name', 'description of page transformation');
+```
 
 ## Developer Guide
 
@@ -16,6 +97,14 @@ Install all the dependencies.
 
 ```
 npm i
+```
+
+### Build
+
+This is a Typescript project so a build step is required to generate the final Javascript.
+
+```
+npm run build
 ```
 
 ### Lint
@@ -32,14 +121,6 @@ Run all the units tests using Mocha.
 
 ```
 npm run test
-```
-
-### Build
-
-This is a Typescript project so a build step is required to generate the final Javascript.
-
-```
-npm run build
 ```
 
 ### Environment
