@@ -10,17 +10,26 @@
  * governing permissions and limitations under the License.
  */
 
-import {FactoryOptions} from './importBuilderFactory.js';
+import { FactoryOptions } from './importBuilderFactory.js';
+import {endpointMap} from './constants/index.js';
 
 type BuilderConfig = FactoryOptions;
 
-const config: Partial<BuilderConfig> = {
+const config: BuilderConfig = {
   baseUrl: '',
+  apiKey: '',
+  environment: 'prod',
 };
 
 export const builderConfig = {
-  getConfig: () => config,
-  mergeConfig: (newConfig: Partial<BuilderConfig>) => {
+  getConfig: () => {
+    const endpointConfig = endpointMap[config.environment];
+    return {
+      ...config,
+      ...endpointConfig,
+    };
+  },
+  mergeConfig: (newConfig: Partial<BuilderConfig> = {}) => {
     Object.assign(config, newConfig);
   },
 }

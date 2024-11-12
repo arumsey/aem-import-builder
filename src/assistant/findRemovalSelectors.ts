@@ -12,12 +12,11 @@
 
 import TemplateBuilder from '../templateBuilder.js';
 import {
-  fetchChatCompletion,
-  firefallJsonPayload,
-  FirefallResponse,
-  FirefallPayload,
-  reduceFirefallResponse,
-} from '../service/firefallService.js';
+  AssistantPayload,
+  AssistantResponse,
+  fetchPrompt,
+  reduceAssistantResponse,
+} from '../service/assistantService.js';
 
 function extractStrings(obj: Record<string, string>): string[] {
   return Object.values(obj).flatMap((value) =>
@@ -27,9 +26,9 @@ function extractStrings(obj: Record<string, string>): string[] {
 
 async function findRemovalSelectors(content: string, names: string): Promise<string[]> {
   const prompt = await TemplateBuilder.merge('/templates/prompt-elements.hbs', {names, content});
-  const payload: FirefallPayload = { ...firefallJsonPayload, messages: [...firefallJsonPayload.messages, { role: 'user', content: prompt }] };
-  const response = await fetchChatCompletion<FirefallResponse>(payload);
-  return reduceFirefallResponse(response, [] as string[], (content, selectors) => {
+  const payload: AssistantPayload = { command: 'findRemovalSelectors', prompt };
+  const response = await fetchPrompt<AssistantResponse>(payload);
+  return reduceAssistantResponse(response, [] as string[], (content, selectors) => {
     const result = JSON.parse(content);
     return [...selectors, ...extractStrings(result)];
   });

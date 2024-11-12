@@ -12,24 +12,20 @@
 
 import TemplateBuilder from '../templateBuilder.js';
 import {
-  fetchChatCompletion,
-  FirefallResponse,
-  FirefallPayload,
-  firefallPayload,
-  reduceFirefallScriptResponse,
-} from '../service/firefallService.js';
+  AssistantPayload,
+  AssistantResponse,
+  fetchPrompt,
+  reduceAssistantScriptResponse,
+} from '../service/assistantService.js';
 
 async function generatePageTransformation(content: string, pattern: string): Promise<string[]> {
   if (!pattern) {
     return [];
   }
   const prompt = await TemplateBuilder.merge('/templates/prompt-transform.hbs', {pattern, content});
-  const payload: FirefallPayload = { ...firefallPayload };
-  payload.messages.push({ role: 'user', content: [
-    { type: 'text', text: prompt },
-  ]});
-  const response = await fetchChatCompletion<FirefallResponse>(payload);
-  return reduceFirefallScriptResponse(response);
+  const payload: AssistantPayload = { command: 'generatePageTransformation', prompt };
+  const response = await fetchPrompt<AssistantResponse>(payload);
+  return reduceAssistantScriptResponse(response);
 }
 
 export default generatePageTransformation;

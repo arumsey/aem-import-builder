@@ -18,3 +18,25 @@ export const IGNORE_ELEMENTS = [
   'iframe',
   'link',
 ];
+
+type EndpointConfig = {
+  spacecatUrl: string;
+  githubUrl: string;
+}
+
+type EndpointDictionary = Record<'prod' | 'dev', EndpointConfig>;
+
+const baseConfig: EndpointConfig = {
+  spacecatUrl: 'https://spacecat.experiencecloud.live/api/v1',
+  githubUrl: 'https://api.github.com',
+};
+
+export const endpointMap: EndpointDictionary = Object.freeze({
+  prod: {
+    ...baseConfig,
+  },
+  dev: {
+    ...baseConfig,
+    spacecatUrl: 'https://spacecat.experiencecloud.live/api/ci',
+  },
+});
