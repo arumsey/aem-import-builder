@@ -20,7 +20,7 @@ const ImportAssistant = (document: string, screenshot: string) => {
   const escapedDocument = document.replace(/"/g, '\\"');
   return {
     findMainContent: () => findMainContent(escapedDocument),
-    findRemovalSelectors: (names: string) => findRemovalSelectors(escapedDocument, names),
+    findRemovalSelectors: (pattern: string) => findRemovalSelectors(escapedDocument, pattern),
     findBlockSelectors: (pattern: string) => findBlockSelectors(escapedDocument, screenshot, pattern),
     findBlockCells: (selectors: string[], pattern: string) => findBlockCells(escapedDocument, screenshot, selectors, pattern),
     generatePageTransformation: (pattern: string) => generatePageTransformation(escapedDocument, pattern),

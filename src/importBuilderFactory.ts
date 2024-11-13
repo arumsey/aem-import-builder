@@ -19,11 +19,22 @@ import {importEvents} from './events.js';
 import {EventEmitter} from 'events';
 import {builderConfig} from './config.js';
 
+/**
+ * Service options for the ImportBuilderFactory.
+ *
+ * apiKey: Spacecat API key.
+ * environment: 'dev' or 'prod'.
+ */
 export type ServiceOptions = {
   apiKey: string;
   environment: 'dev' | 'prod';
 };
 
+/**
+ * Options for the ImportBuilderFactory.
+ *
+ * baseUrl: URL containing a /tools/importer path.
+ */
 export type FactoryOptions = {
   baseUrl?: string;
 } & ServiceOptions;
