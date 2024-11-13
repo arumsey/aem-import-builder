@@ -25,7 +25,7 @@ function extractStrings(obj: Record<string, string>): string[] {
 }
 
 async function findRemovalSelectors(content: string, names: string): Promise<string[]> {
-  const prompt = await TemplateBuilder.merge('/templates/prompt-elements.hbs', {names, content});
+  const prompt = await TemplateBuilder.merge('/templates/prompt-elements.hbs', { names, content });
   const payload: AssistantPayload = { command: 'findRemovalSelectors', prompt };
   const response = await fetchPrompt<AssistantResponse>(payload);
   return reduceAssistantResponse(response, [] as string[], (content, selectors) => {

@@ -10,8 +10,8 @@
  * governing permissions and limitations under the License.
  */
 
-import {ImportRules} from 'aem-import-rules';
-import {BuilderFileItem} from '../importBuilder.js';
+import { ImportRules } from 'aem-import-rules';
+import { BuilderFileItem } from '../importBuilder.js';
 
 type AnyImportAdapter = (...args: never[]) => Promise<BuilderFileItem[]>;
 

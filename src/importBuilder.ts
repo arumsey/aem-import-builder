@@ -10,10 +10,10 @@
  * governing permissions and limitations under the License.
  */
 
-import {ImportRulesBuilder, ImportRules, BlockRule} from 'aem-import-rules';
+import { ImportRulesBuilder, ImportRules, BlockRule } from 'aem-import-rules';
 import ImportAssistant from './importAssistant.js';
-import {ImportAdapter} from './adapter/importAdapter.js';
-import {importEvents} from './events.js';
+import { ImportAdapter } from './adapter/importAdapter.js';
+import { importEvents } from './events.js';
 import {
   buildContentRemoval,
   buildBlocks,
@@ -22,8 +22,8 @@ import {
   buildCellParser,
   buildPageTransformer,
 } from './builder/index.js';
-import {IGNORE_ELEMENTS} from './constants/index.js';
-import {PageCollection} from './utils/pageUtils.js';
+import { IGNORE_ELEMENTS } from './constants/index.js';
+import { PageCollection } from './utils/pageUtils.js';
 
 export type BuilderFileItem = {
   name: string;
@@ -74,7 +74,7 @@ const getDuration = (start: number) => {
   return (end - start) / 1000;
 }
 
-const ImportBuilder = ({content, adapter, rules }: ImportBuilderOptions): AnyBuilder => {
+const ImportBuilder = ({ content, adapter, rules }: ImportBuilderOptions): AnyBuilder => {
   const importRules = ImportRulesBuilder(rules);
   const [dom, screenshot] = content;
   const docBody = dom.body.outerHTML;
@@ -103,11 +103,11 @@ const ImportBuilder = ({content, adapter, rules }: ImportBuilderOptions): AnyBui
       const allFiles = [...removalFiles, ...blockFiles, ...rulesFileItem];
       const { files: importerFiles } = await buildImporter(adapter, importRules);
       importEvents.emit('complete');
-      return {files: [...allFiles, ...importerFiles]};
+      return { files: [...allFiles, ...importerFiles] };
     },
     addCleanup: async (namePrompt) => {
       if (!namePrompt) {
-        return {files: []};
+        return { files: [] };
       }
       const start = Date.now();
       importEvents.emit('start', 'Assistant is analyzing the document to find elements to remove');
@@ -121,18 +121,18 @@ const ImportBuilder = ({content, adapter, rules }: ImportBuilderOptions): AnyBui
       importEvents.emit('start', 'Creating import files');
       const { files: rulesFileItem } = await buildImportRules(adapter, importRules);
       importEvents.emit('complete');
-      return {files: [...rulesFileItem]};
+      return { files: [...rulesFileItem] };
     },
     addBlock: async (name, prompt) => {
       if (!name || !prompt) {
-        return {files: []};
+        return { files: [] };
       }
       const start = Date.now();
       importEvents.emit('start', 'Assistant is analyzing the document to find the requested block');
       const assistant = ImportAssistant(docBody, screenshot);
       const partialRules = await assistant.findBlockSelectors(prompt);
       // update import rules
-      const blockRules = partialRules.map<BlockRule>((rule) => ({...rule, type: name}));
+      const blockRules = partialRules.map<BlockRule>((rule) => ({ ...rule, type: name }));
       blockRules.forEach((rule) => importRules.addBlock(rule));
       importEvents.emit('progress', `Added ${partialRules.length} blocks to the block rules in (${getDuration(start)}s)`);
       importEvents.emit('complete');
@@ -143,12 +143,12 @@ const ImportBuilder = ({content, adapter, rules }: ImportBuilderOptions): AnyBui
       const allFiles = [...blockFiles, ...rulesFileItem];
       const { files: importerFiles } = await buildImporter(adapter, importRules);
       importEvents.emit('complete');
-      return {files: [...allFiles, ...importerFiles]};
+      return { files: [...allFiles, ...importerFiles] };
     },
     addCellParser: async (name, prompt) => {
       const blockRule = importRules.findBlock(name);
       if (!blockRule || !prompt) {
-        return {files: []};
+        return { files: [] };
       }
       const start = Date.now();
       importEvents.emit('start', `Assistant is analyzing the document to find the cells for the ${name} block`);
@@ -159,18 +159,18 @@ const ImportBuilder = ({content, adapter, rules }: ImportBuilderOptions): AnyBui
       importEvents.emit('complete');
       // update parser files
       importEvents.emit('start', 'Creating import files');
-      const {files: parserFileItem} = await buildCellParser(adapter, blockRule, parser);
+      const { files: parserFileItem } = await buildCellParser(adapter, blockRule, parser);
       importEvents.emit('complete');
-      return {files: [...parserFileItem]};
+      return { files: [...parserFileItem] };
     },
     addPageTransformer: async (name, prompt) => {
       if (!name || !prompt) {
-        return {files: []};
+        return { files: [] };
       }
-      importRules.addTransformer({name});
+      importRules.addTransformer({ name });
       const transformRule = importRules.findTransformer(name);
       if (!transformRule) {
-        return {files: []};
+        return { files: [] };
       }
       const start = Date.now();
       importEvents.emit('start', `Assistant is analyzing the document to generate a ${name} transformation function`);
@@ -185,7 +185,7 @@ const ImportBuilder = ({content, adapter, rules }: ImportBuilderOptions): AnyBui
       const allFiles = [...transformFiles, ...rulesFileItem];
       const { files: importerFiles } = await buildImporter(adapter, importRules);
       importEvents.emit('complete');
-      return {files: [...allFiles, ...importerFiles]};
+      return { files: [...allFiles, ...importerFiles] };
     },
   }
 };

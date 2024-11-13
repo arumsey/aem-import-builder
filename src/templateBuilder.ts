@@ -11,8 +11,8 @@
  */
 
 import Handlebars from 'handlebars';
-import {fetchGist} from './service/githubService.js';
-import {fetchText} from './service/toolsService.js';
+import { fetchGist } from './service/githubService.js';
+import { fetchText } from './service/toolsService.js';
 
 Handlebars.registerHelper('title', (str: string) => {
   return str
@@ -26,8 +26,8 @@ function mergeContent<T extends Record<string, unknown>>(template: string, data:
 }
 
 const TemplateBuilder = {
-  merge: async <T extends Record<string, unknown>>(template: string, data: T, options?: {variant: 'gist' | 'local'}): Promise<string> => {
-    const {variant = 'local'} = options || {};
+  merge: async <T extends Record<string, unknown>>(template: string, data: T, options?: { variant: 'gist' | 'local' }): Promise<string> => {
+    const { variant = 'local' } = options || {};
     let content: string;
     if (variant === 'gist') {
       content = await fetchGist(template) || '';

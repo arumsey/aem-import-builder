@@ -10,7 +10,7 @@
  * governing permissions and limitations under the License.
  */
 
-import {builderConfig} from '../config.js';
+import { builderConfig } from '../config.js';
 
 export type AssistantCommands =
   'findMainContent' |
@@ -62,8 +62,8 @@ export const reduceAssistantResponse = <T = unknown>(
   initialValue: T,
   messageParser: (content: string, value: T) => T = (content) => content as T,
 ): T => {
-  const {choices = []} = response;
-  return choices.reduce((value, {finish_reason, message}): T => {
+  const { choices = [] } = response;
+  return choices.reduce((value, { finish_reason, message }): T => {
     if (finish_reason === 'stop' && typeof message.content === 'string') {
       value = messageParser(message.content, value) || value;
     }

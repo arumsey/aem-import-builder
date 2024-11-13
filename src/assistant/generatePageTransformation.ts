@@ -22,7 +22,7 @@ async function generatePageTransformation(content: string, pattern: string): Pro
   if (!pattern) {
     return [];
   }
-  const prompt = await TemplateBuilder.merge('/templates/prompt-transform.hbs', {pattern, content});
+  const prompt = await TemplateBuilder.merge('/templates/prompt-transform.hbs', { pattern, content });
   const payload: AssistantPayload = { command: 'generatePageTransformation', prompt };
   const response = await fetchPrompt<AssistantResponse>(payload);
   return reduceAssistantScriptResponse(response);

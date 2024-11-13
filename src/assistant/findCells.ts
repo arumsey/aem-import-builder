@@ -24,7 +24,7 @@ async function findBlockCells(content: string, screenshot: string, selectors: st
   }
   // Just use first selector for now - TODO: handle multiple selectors in the future
   const [selector] = selectors;
-  const prompt = await TemplateBuilder.merge('/templates/prompt-cells.hbs', {selector, pattern, content});
+  const prompt = await TemplateBuilder.merge('/templates/prompt-cells.hbs', { selector, pattern, content });
   const payload: AssistantPayload = { command: 'findBlockCells', prompt };
   const response = await fetchPrompt<AssistantResponse>(payload);
   return reduceAssistantScriptResponse(response);

@@ -31,6 +31,7 @@
     "copy-templates": "copyfiles -u 1 src/templates/* dist/",
     "build": "npm run clean && npm run lint && tsc --declaration -project tsconfig.build.json && npm run copy-templates",
     "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
     "test": "mocha"
   },
   "dependencies": {

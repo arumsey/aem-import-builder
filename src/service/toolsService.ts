@@ -10,7 +10,7 @@
  * governing permissions and limitations under the License.
  */
 
-import {builderConfig} from '../config.js';
+import { builderConfig } from '../config.js';
 
 const TOOLS_PATH = '/tools/importer';
 

@@ -10,14 +10,14 @@
  * governing permissions and limitations under the License.
  */
 
-import {ImportRules} from 'aem-import-rules';
-import {minifyPage, PageOptions} from './utils/pageUtils.js';
-import ImportBuilder, {AnyBuilder} from './importBuilder.js';
-import {ImportAdapter} from './adapter/importAdapter.js';
+import { ImportRules } from 'aem-import-rules';
+import { minifyPage, PageOptions } from './utils/pageUtils.js';
+import ImportBuilder, { AnyBuilder } from './importBuilder.js';
+import { ImportAdapter } from './adapter/importAdapter.js';
 import scriptImportAdapter from './adapter/scriptImportAdapter.js';
-import {importEvents} from './events.js';
-import {EventEmitter} from 'events';
-import {builderConfig} from './config.js';
+import { importEvents } from './events.js';
+import { EventEmitter } from 'events';
+import { builderConfig } from './config.js';
 
 /**
  * Service options for the ImportBuilderFactory.
@@ -55,8 +55,8 @@ const ImportBuilderFactory: (options?: FactoryOptions) => BuilderFactory = (opti
   return {
     on: importEvents.on.bind(importEvents),
     off: importEvents.off.bind(importEvents),
-    create: async ({mode = 'script', rules, page} = {}): Promise<AnyBuilder | undefined> => {
-      const content = await minifyPage({page});
+    create: async ({ mode = 'script', rules, page } = {}): Promise<AnyBuilder | undefined> => {
+      const content = await minifyPage({ page });
       if (content.length === 0) {
         throw new Error('No page content provided.');
       }
@@ -65,7 +65,7 @@ const ImportBuilderFactory: (options?: FactoryOptions) => BuilderFactory = (opti
         adapter = scriptImportAdapter;
       }
       if (adapter) {
-        return ImportBuilder({content, adapter, rules});
+        return ImportBuilder({ content, adapter, rules });
       }
       return undefined;
     },

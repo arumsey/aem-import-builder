@@ -11,7 +11,7 @@
  */
 
 import { FactoryOptions } from './importBuilderFactory.js';
-import {endpointMap} from './constants/index.js';
+import { endpointMap } from './constants/index.js';
 
 type BuilderConfig = FactoryOptions;
 
