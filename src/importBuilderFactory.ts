@@ -18,6 +18,7 @@ import scriptImportAdapter from './adapter/scriptImportAdapter.js';
 import { importEvents } from './events.js';
 import { EventEmitter } from 'events';
 import { builderConfig } from './config.js';
+import { EndpointEnvironment } from './constants/index.js';
 
 /**
  * Service options for the ImportBuilderFactory.
@@ -27,7 +28,7 @@ import { builderConfig } from './config.js';
  */
 export type ServiceOptions = {
   apiKey: string;
-  environment: 'dev' | 'prod';
+  environment: EndpointEnvironment;
 };
 
 /**
@@ -36,7 +37,7 @@ export type ServiceOptions = {
  * baseUrl: URL containing a /tools/importer path.
  */
 export type FactoryOptions = {
-  baseUrl?: string;
+  baseUrl: string;
 } & ServiceOptions;
 
 type ImportBuilderCreateOptions = {
@@ -48,7 +49,7 @@ export type BuilderFactory = {
   create: (options?: ImportBuilderCreateOptions) => Promise<AnyBuilder | undefined>;
 } & Pick<EventEmitter, 'on' | 'off'>
 
-const ImportBuilderFactory: (options?: FactoryOptions) => BuilderFactory = (options) => {
+const ImportBuilderFactory: (options?: Partial<FactoryOptions>) => BuilderFactory = (options) => {
 
   builderConfig.mergeConfig(options);
 

@@ -10,7 +10,7 @@
  * governing permissions and limitations under the License.
  */
 
-import { endpointMap } from './endpoints.js';
+import { endpointMap, EndpointEnvironment, EndpointConfig } from './endpoints.js';
 
 const IGNORE_ELEMENTS = [
   'style',
@@ -24,5 +24,7 @@ const IGNORE_ELEMENTS = [
 export {
   IGNORE_ELEMENTS,
   endpointMap,
+  EndpointEnvironment,
+  EndpointConfig,
 }
 

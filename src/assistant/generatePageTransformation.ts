@@ -14,7 +14,7 @@ import TemplateBuilder from '../templateBuilder.js';
 import {
   AssistantPayload,
   AssistantResponse,
-  fetchPrompt,
+  fetchPromptCompletion,
   reduceAssistantScriptResponse,
 } from '../service/assistantService.js';
 
@@ -24,7 +24,7 @@ async function generatePageTransformation(content: string, pattern: string): Pro
   }
   const prompt = await TemplateBuilder.merge('/templates/prompt-transform.hbs', { pattern, content });
   const payload: AssistantPayload = { command: 'generatePageTransformation', prompt };
-  const response = await fetchPrompt<AssistantResponse>(payload);
+  const response = await fetchPromptCompletion<AssistantResponse>(payload);
   return reduceAssistantScriptResponse(response);
 }
 

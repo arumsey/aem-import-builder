@@ -14,7 +14,7 @@ import TemplateBuilder from '../templateBuilder.js';
 import {
   AssistantPayload,
   AssistantResponse,
-  fetchPrompt,
+  fetchPromptCompletion,
   reduceAssistantScriptResponse,
 } from '../service/assistantService.js';
 
@@ -26,7 +26,7 @@ async function findBlockCells(content: string, screenshot: string, selectors: st
   const [selector] = selectors;
   const prompt = await TemplateBuilder.merge('/templates/prompt-cells.hbs', { selector, pattern, content });
   const payload: AssistantPayload = { command: 'findBlockCells', prompt };
-  const response = await fetchPrompt<AssistantResponse>(payload);
+  const response = await fetchPromptCompletion<AssistantResponse>(payload);
   return reduceAssistantScriptResponse(response);
 }
 

@@ -10,10 +10,12 @@
  * governing permissions and limitations under the License.
  */
 
-type EndpointConfig = {
+export type EndpointConfig = {
   spacecatUrl: string;
   githubUrl: string;
 }
+
+export type EndpointEnvironment = keyof EndpointDictionary;
 
 type EndpointDictionary = Record<'prod' | 'stage', EndpointConfig>;
 

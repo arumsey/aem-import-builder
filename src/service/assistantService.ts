@@ -44,7 +44,7 @@ export type AssistantResponse = {
 export const javascriptRegex = /```javascript([\s\S]*?)```/g;
 export const jsonRegex = /```json([\s\S]*?)```/g;
 
-export const fetchPrompt = async <T>(payload: AssistantPayload): Promise<T> => {
+export const fetchPromptCompletion = async <T>(payload: AssistantPayload): Promise<T> => {
   const { spacecatUrl, apiKey } = builderConfig.getConfig();
   const assistant = await fetch(`${spacecatUrl}/tools/import/assistant/prompt`, {
     method: 'POST',

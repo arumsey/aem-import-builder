@@ -15,14 +15,14 @@ import TemplateBuilder from '../templateBuilder.js';
 import {
   AssistantPayload,
   AssistantResponse,
-  fetchPrompt,
+  fetchPromptCompletion,
   reduceAssistantResponse,
 } from '../service/assistantService.js';
 
 async function findMainContent(content: string): Promise<string> {
   const prompt = await TemplateBuilder.merge('/templates/prompt-mainContent.hbs', { content });
   const payload: AssistantPayload = { command: 'findMainContent', prompt };
-  const response = await fetchPrompt<AssistantResponse>(payload);
+  const response = await fetchPromptCompletion<AssistantResponse>(payload);
   return reduceAssistantResponse(response, 'main', (content) => {
     const result = JSON.parse(content);
     const [firstValue] = Object.values<string>(result);

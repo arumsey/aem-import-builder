@@ -15,7 +15,7 @@ import TemplateBuilder from '../templateBuilder.js';
 import {
   AssistantPayload,
   AssistantResponse,
-  fetchPrompt,
+  fetchPromptCompletion,
   reduceAssistantResponse,
   jsonRegex,
 } from '../service/assistantService.js';
@@ -26,7 +26,7 @@ async function findBlockSelectors(content: string, screenshot: string, pattern: 
   }
   const prompt = await TemplateBuilder.merge('/templates/prompt-block.hbs', { pattern, content });
   const payload: AssistantPayload = { command: 'findBlockSelectors', prompt, options: { imageUrl: `data:image/png;base64,${screenshot}` } };
-  const response = await fetchPrompt<AssistantResponse>(payload);
+  const response = await fetchPromptCompletion<AssistantResponse>(payload);
   // extract selectors from response
   return reduceAssistantResponse(response, [{ selectors: [] }] as Partial<BlockRule>[], (content, rules) => {
     const matches = content.matchAll(jsonRegex);

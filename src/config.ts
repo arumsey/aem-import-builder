@@ -11,7 +11,7 @@
  */
 
 import { FactoryOptions } from './importBuilderFactory.js';
-import { endpointMap } from './constants/index.js';
+import { EndpointConfig, endpointMap } from './constants/index.js';
 
 type BuilderConfig = FactoryOptions;
 
@@ -22,14 +22,14 @@ const config: BuilderConfig = {
 };
 
 export const builderConfig = {
-  getConfig: () => {
+  getConfig: () : BuilderConfig & EndpointConfig => {
     const endpointConfig = endpointMap[config.environment];
     return {
       ...config,
       ...endpointConfig,
     };
   },
-  mergeConfig: (newConfig: Partial<BuilderConfig> = {}) => {
-    Object.assign(config, newConfig);
+  mergeConfig: (newConfig: Partial<BuilderConfig> = {}) : BuilderConfig => {
+    return Object.assign(config, newConfig);
   },
 }
