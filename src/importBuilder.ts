@@ -15,7 +15,6 @@ import ImportAssistant from './importAssistant.js';
 import { ImportAdapter } from './adapter/importAdapter.js';
 import { importEvents } from './events.js';
 import {
-  buildContentRemoval,
   buildBlocks,
   buildImportRules,
   buildImporter,
@@ -79,28 +78,23 @@ const ImportBuilder = ({ content, adapter, rules }: ImportBuilderOptions): AnyBu
   const [dom, screenshot] = content;
   const docBody = dom.body.outerHTML;
 
-  const addRootRule = async () => {
-    const start = Date.now();
-    importEvents.emit('start', 'Assistant is analyzing the document to find the main content element');
-    const assistant = ImportAssistant(docBody, screenshot);
-    const selector = await assistant.findMainContent();
-    importEvents.emit('progress', `Using '${selector}' as the main content element (${getDuration(start)}s)`);
-    importRules.setRoot(selector);
-    importEvents.emit('complete');
-  }
-
   return {
     buildProject: async () => {
       // update import rules
-      await addRootRule();
+      const start = Date.now();
+      importEvents.emit('start', 'Assistant is analyzing the document to find the main content element');
+      const assistant = ImportAssistant(docBody, screenshot);
+      const selector = await assistant.findMainContent();
+      importEvents.emit('progress', `Using '${selector}' as the main content element (${getDuration(start)}s)`);
+      importRules.setRoot(selector);
       importRules.addCleanup(IGNORE_ELEMENTS);
       importRules.addBlock(metadataBlockRule);
+      importEvents.emit('complete');
       // build all the files
       importEvents.emit('start', 'Creating project files');
-      const { files: removalFiles } = await buildContentRemoval(adapter);
       const { files: blockFiles } = await buildBlocks(adapter, [metadataBlockRule]);
       const { files: rulesFileItem } = await buildImportRules(adapter, importRules);
-      const allFiles = [...removalFiles, ...blockFiles, ...rulesFileItem];
+      const allFiles = [...blockFiles, ...rulesFileItem];
       const { files: importerFiles } = await buildImporter(adapter, importRules);
       importEvents.emit('complete');
       return { files: [...allFiles, ...importerFiles] };

@@ -16,7 +16,6 @@ import { BuilderFileItem } from '../importBuilder.js';
 type AnyImportAdapter = (...args: never[]) => Promise<BuilderFileItem[]>;
 
 export interface ImportAdapter extends Record<string, AnyImportAdapter> {
-  adaptContentRemoval: () => Promise<BuilderFileItem[]>;
   adaptBlockNames: (blocks: string[]) => Promise<BuilderFileItem[]>;
   adaptCellParser: (block: string, script: string) => Promise<BuilderFileItem[]>;
   adaptPageTransformer: (name: string, script: string) => Promise<BuilderFileItem[]>;

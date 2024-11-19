@@ -19,11 +19,6 @@ import { BlockRule, TransformRule } from 'aem-import-rules';
 
 type RuleBuilder = ReturnType<typeof ImportRuleBuilder>;
 
-export const buildContentRemoval: AsyncBuilderFunc = async (adapter) => {
-  const content = await adapter.adaptContentRemoval();
-  return { files: content };
-}
-
 export const buildBlocks: AsyncBuilderFunc<AdapterBuilderArgs<[BlockRule[]]>> = async (adapter, blockRules) => {
   const content = await adapter.adaptBlockNames(blockRules.map(rule => rule.type));
   return { files: content };
