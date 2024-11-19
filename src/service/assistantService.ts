@@ -51,6 +51,7 @@ export const fetchPromptCompletion = async <T>(payload: AssistantPayload): Promi
     headers: {
       'Content-Type': 'application/json',
       'x-api-key': apiKey,
+      'x-gw-ims-org-id': 'aem-import-builder',
     },
     body: JSON.stringify(payload),
   });
