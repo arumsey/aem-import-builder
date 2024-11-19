@@ -15,36 +15,31 @@ import {
   AsyncBuilderFunc,
 } from '../importBuilder.js';
 import ImportRuleBuilder from 'aem-import-rules/dist/rulebuilder.js';
-import {BlockRule, TransformRule} from 'aem-import-rules';
+import { BlockRule, TransformRule } from 'aem-import-rules';
 
 type RuleBuilder = ReturnType<typeof ImportRuleBuilder>;
 
-export const buildContentRemoval: AsyncBuilderFunc = async (adapter) => {
-  const content = await adapter.adaptContentRemoval();
-  return {files: content};
-}
-
 export const buildBlocks: AsyncBuilderFunc<AdapterBuilderArgs<[BlockRule[]]>> = async (adapter, blockRules) => {
   const content = await adapter.adaptBlockNames(blockRules.map(rule => rule.type));
-  return {files: content};
+  return { files: content };
 }
 
 export const buildCellParser: AsyncBuilderFunc<AdapterBuilderArgs<[BlockRule, string]>> = async (adapter, blockRule, script) => {
   const content = await adapter.adaptCellParser(blockRule.type, script);
-  return {files: content};
+  return { files: content };
 }
 
 export const buildPageTransformer: AsyncBuilderFunc<AdapterBuilderArgs<[TransformRule, string]>> = async (adapter, transformRule, script) => {
   const content = await adapter.adaptPageTransformer(transformRule.name, script);
-  return {files: content};
+  return { files: content };
 }
 
 export const buildImportRules: AsyncBuilderFunc<AdapterBuilderArgs<[RuleBuilder]>> = async (adapter, importRules) => {
   const content = await adapter.adaptRules(importRules.build());
-  return {files: content};
+  return { files: content };
 }
 
 export const buildImporter: AsyncBuilderFunc<AdapterBuilderArgs<[RuleBuilder]>> = async (adapter, rules) => {
   const content = await adapter.adaptImport(rules.build());
-  return {files: content};
+  return { files: content };
 }

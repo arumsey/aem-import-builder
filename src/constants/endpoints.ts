@@ -10,26 +10,26 @@
  * governing permissions and limitations under the License.
  */
 
-import { FactoryOptions } from './importBuilderFactory.js';
-import { EndpointConfig, endpointMap } from './constants/index.js';
+export type EndpointConfig = {
+  spacecatUrl: string;
+  githubUrl: string;
+}
 
-type BuilderConfig = FactoryOptions;
+export type EndpointEnvironment = keyof EndpointDictionary;
 
-const config: BuilderConfig = {
-  baseUrl: '',
-  apiKey: '',
-  environment: 'prod',
+type EndpointDictionary = Record<'prod' | 'stage', EndpointConfig>;
+
+const baseConfig: EndpointConfig = {
+  spacecatUrl: 'https://spacecat.experiencecloud.live/api/v1',
+  githubUrl: 'https://api.github.com',
 };
 
-export const builderConfig = {
-  getConfig: () : BuilderConfig & EndpointConfig => {
-    const endpointConfig = endpointMap[config.environment];
-    return {
-      ...config,
-      ...endpointConfig,
-    };
+export const endpointMap: EndpointDictionary = Object.freeze({
+  prod: {
+    ...baseConfig,
   },
-  mergeConfig: (newConfig: Partial<BuilderConfig> = {}) : BuilderConfig => {
-    return Object.assign(config, newConfig);
+  stage: {
+    ...baseConfig,
+    spacecatUrl: 'https://spacecat.experiencecloud.live/api/ci',
   },
-}
+});

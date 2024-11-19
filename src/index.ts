@@ -10,8 +10,9 @@
  * governing permissions and limitations under the License.
  */
 
-import ImportBuilderFactory from './importBuilderFactory.js';
+import ImportBuilderFactory, { FactoryOptions } from './importBuilderFactory.js';
 
 export {
   ImportBuilderFactory,
+  FactoryOptions,
 }

@@ -13,7 +13,6 @@
 import {
   buildBlocks,
   buildImportRules,
-  buildContentRemoval,
   buildImporter,
   buildCellParser,
   buildPageTransformer,
@@ -22,7 +21,6 @@ import {
 export {
   buildBlocks,
   buildImportRules,
-  buildContentRemoval,
   buildImporter,
   buildCellParser,
   buildPageTransformer,

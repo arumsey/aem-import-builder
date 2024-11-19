@@ -13,27 +13,22 @@
 import { BlockRule } from 'aem-import-rules';
 import TemplateBuilder from '../templateBuilder.js';
 import {
-  fetchChatCompletion,
-  FirefallResponse,
-  FirefallPayload,
-  firefallVisionPayload,
-  reduceFirefallResponse,
+  AssistantPayload,
+  AssistantResponse,
+  fetchPromptCompletion,
+  reduceAssistantResponse,
   jsonRegex,
-} from '../service/firefallService.js';
+} from '../service/assistantService.js';
 
 async function findBlockSelectors(content: string, screenshot: string, pattern: string): Promise<Partial<BlockRule>[]> {
   if (!pattern || !screenshot) {
     return [];
   }
-  const prompt = await TemplateBuilder.merge('/templates/prompt-block.hbs', {pattern, content});
-  const payload: FirefallPayload = { ...firefallVisionPayload };
-  payload.messages.push({ role: 'user', content: [
-    { type: 'text', text: prompt },
-    { type: 'image_url', image_url: { url: `data:image/png;base64,${screenshot}` } },
-  ] });
-  const response = await fetchChatCompletion<FirefallResponse>(payload);
+  const prompt = await TemplateBuilder.merge('/templates/prompt-block.hbs', { pattern, content });
+  const payload: AssistantPayload = { command: 'findBlockSelectors', prompt, options: { imageUrl: `data:image/png;base64,${screenshot}` } };
+  const response = await fetchPromptCompletion<AssistantResponse>(payload);
   // extract selectors from response
-  return reduceFirefallResponse(response, [{selectors: []}] as Partial<BlockRule>[], (content, rules) => {
+  return reduceAssistantResponse(response, [{ selectors: [] }] as Partial<BlockRule>[], (content, rules) => {
     const matches = content.matchAll(jsonRegex);
     const [blockRule] = rules;
     [...matches].forEach((match) => {

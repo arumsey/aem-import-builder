@@ -9,9 +9,9 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-import {minify} from 'html-minifier-terser';
-import {DocumentUtils} from './documentUtils.js';
-import {IGNORE_ELEMENTS} from '../constants/index.js';
+import { minify } from 'html-minifier-terser';
+import { DocumentUtils } from './documentUtils.js';
+import { IGNORE_ELEMENTS } from '../constants/index.js';
 
 export type PageCollection<T = string> = [T, string];
 

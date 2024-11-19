@@ -10,28 +10,35 @@
  * governing permissions and limitations under the License.
  */
 
-import {ImportRules} from 'aem-import-rules';
-import {minifyPage, PageOptions} from './utils/pageUtils.js';
-import ImportBuilder, {AnyBuilder} from './importBuilder.js';
-import {ImportAdapter} from './adapter/importAdapter.js';
+import { ImportRules } from 'aem-import-rules';
+import { minifyPage, PageOptions } from './utils/pageUtils.js';
+import ImportBuilder, { AnyBuilder } from './importBuilder.js';
+import { ImportAdapter } from './adapter/importAdapter.js';
 import scriptImportAdapter from './adapter/scriptImportAdapter.js';
-import {importEvents} from './events.js';
-import {EventEmitter} from 'events';
-import {IMS} from './service/firefallService.js';
-import {builderConfig} from './config.js';
+import { importEvents } from './events.js';
+import { EventEmitter } from 'events';
+import { builderConfig } from './config.js';
+import { EndpointEnvironment } from './constants/index.js';
 
-export type AuthOptions = {
-  auth: {
-    authCode?: string;
-    clientSecret?: string;
-    accessToken?: string;
-    imsOrgId?: string;
-  }
+/**
+ * Service options for the ImportBuilderFactory.
+ *
+ * apiKey: Spacecat API key.
+ * environment: 'dev' or 'prod'.
+ */
+export type ServiceOptions = {
+  apiKey: string;
+  environment: EndpointEnvironment;
 };
 
+/**
+ * Options for the ImportBuilderFactory.
+ *
+ * baseUrl: URL containing a /tools/importer path.
+ */
 export type FactoryOptions = {
-  baseUrl?: string;
-} & AuthOptions;
+  baseUrl: string;
+} & ServiceOptions;
 
 type ImportBuilderCreateOptions = {
   mode?: 'script';
@@ -42,25 +49,15 @@ export type BuilderFactory = {
   create: (options?: ImportBuilderCreateOptions) => Promise<AnyBuilder | undefined>;
 } & Pick<EventEmitter, 'on' | 'off'>
 
-const ImportBuilderFactory: (options?: FactoryOptions) => BuilderFactory = (options = { auth: {}}) => {
-  const {
-    auth: {
-      authCode = '',
-      clientSecret = '',
-      accessToken = '',
-      imsOrgId = '',
-    }} = options;
-  IMS.AUTH_CODE = authCode;
-  IMS.CLIENT_SECRET = clientSecret;
-  IMS.ACCESS_TOKEN = accessToken;
-  IMS.ORG_ID = imsOrgId;
+const ImportBuilderFactory: (options?: Partial<FactoryOptions>) => BuilderFactory = (options) => {
+
   builderConfig.mergeConfig(options);
 
   return {
     on: importEvents.on.bind(importEvents),
     off: importEvents.off.bind(importEvents),
-    create: async ({mode = 'script', rules, page} = {}): Promise<AnyBuilder | undefined> => {
-      const content = await minifyPage({page});
+    create: async ({ mode = 'script', rules, page } = {}): Promise<AnyBuilder | undefined> => {
+      const content = await minifyPage({ page });
       if (content.length === 0) {
         throw new Error('No page content provided.');
       }
@@ -69,7 +66,7 @@ const ImportBuilderFactory: (options?: FactoryOptions) => BuilderFactory = (opti
         adapter = scriptImportAdapter;
       }
       if (adapter) {
-        return ImportBuilder({content, adapter, rules});
+        return ImportBuilder({ content, adapter, rules });
       }
       return undefined;
     },

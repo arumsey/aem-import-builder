@@ -15,8 +15,9 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import ImportBuilderFactory from '../src/importBuilderFactory.js';
-import {JSDOM} from 'jsdom';
+import ImportBuilderFactory, { BuilderFactory, FactoryOptions } from '../src/importBuilderFactory.js';
+import { JSDOM } from 'jsdom';
+import { builderConfig } from '../src/config.js';
 
 chai.use(chaiAsPromised);
 
@@ -24,6 +25,8 @@ describe('ImportBuilderFactory', () => {
   let importEventsOnStub: sinon.SinonStub;
   let importEventsOffStub: sinon.SinonStub;
   let minifyPageStub: sinon.SinonStub;
+  let mergeConfigSpy: sinon.SinonSpy;
+  let ImportBuilderFactoryMock: (options?: Partial<FactoryOptions>) => BuilderFactory;
   let factory: ReturnType<typeof ImportBuilderFactory>;
 
   const page: [string, string] = ['<html lang="en"><body>Test Document</body></html>', ''];
@@ -31,11 +34,12 @@ describe('ImportBuilderFactory', () => {
   beforeEach(async () => {
     importEventsOnStub = sinon.stub();
     importEventsOffStub = sinon.stub();
-
     const dom = new JSDOM(page[0]);
     minifyPageStub = sinon.stub().resolves([dom.window.document]);
 
-    const ImportBuilderFactoryMock = await esmock('../src/importBuilderFactory.js', {
+    mergeConfigSpy = sinon.spy(builderConfig, 'mergeConfig');
+
+    ImportBuilderFactoryMock = await esmock('../src/importBuilderFactory.js', {
       '../src/events.js': {
         importEvents: {
           on: importEventsOnStub,
@@ -55,23 +59,39 @@ describe('ImportBuilderFactory', () => {
     sinon.restore();
   });
 
+  it('should merge options into builder config', async () => {
+    mergeConfigSpy.resetHistory();
+    ImportBuilderFactoryMock();
+    expect(mergeConfigSpy.calledOnceWith(undefined)).to.be.true;
+    const options: FactoryOptions = { baseUrl: 'http://localhost:3001', environment: 'stage', apiKey: '1234' };
+    mergeConfigSpy.resetHistory();
+    ImportBuilderFactoryMock(options);
+    expect(mergeConfigSpy.calledOnceWith(options)).to.be.true;
+    const mergedConfig = builderConfig.getConfig();
+    expect(mergedConfig.baseUrl).to.equal(options.baseUrl);
+    expect(mergedConfig.apiKey).to.equal(options.apiKey);
+    expect(mergedConfig.environment).to.equal(options.environment);
+    ImportBuilderFactoryMock({ baseUrl: '' });
+    expect(builderConfig.getConfig().baseUrl).to.be.empty;
+  });
+
   it('should create an ImportBuilder with script mode', async () => {
-    const builder = await factory.create({mode: 'script', page});
+    const builder = await factory.create({ mode: 'script', page });
     expect(builder).to.not.be.undefined;
   });
 
   it('should throw an error when no page content is provided', async () => {
     minifyPageStub.resolves([]);
-    await expect(factory.create({mode: 'script'})).to.be.rejectedWith(Error, 'No page content provided.');
+    await expect(factory.create({ mode: 'script' })).to.be.rejectedWith(Error, 'No page content provided.');
   });
 
   it('should return undefined if no adapter is found', async () => {
-    const builder = await factory.create({mode: 'unknown' as unknown as 'script', page});
+    const builder = await factory.create({ mode: 'unknown' as unknown as 'script', page });
     expect(builder).to.be.undefined;
   });
 
   it('should validate the object returned by factory.create', async () => {
-    const builder = await factory.create({mode:'script', page});
+    const builder = await factory.create({ mode:'script', page });
     expect(builder).to.have.property('buildProject').that.is.a('function');
   });
 

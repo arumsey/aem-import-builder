@@ -10,6 +10,8 @@
  * governing permissions and limitations under the License.
  */
 
+import { builderConfig } from '../config.js';
+
 const GIST_IMPORT_RULES = 'a66e25a5292afcc0f34be48a84c8c548';
 let fileCache: Record<string, GistFile> = {};
 
@@ -25,11 +27,12 @@ type GistFile = {
 
 export const fetchGist = async (name: string): Promise<string | null> => {
   if (!fileCache[name]) {
-    const gist = await fetch(`https://api.github.com/gists/${GIST_IMPORT_RULES}`);
-    const {files} = await gist.json();
+    const { githubUrl } = builderConfig.getConfig();
+    const gist = await fetch(`${githubUrl}/gists/${GIST_IMPORT_RULES}`);
+    const { files } = await gist.json();
     fileCache = files as Record<string, GistFile>;
   }
-  const {[name]: {content, truncated}} = fileCache;
+  const { [name]: { content, truncated } } = fileCache;
   if (!truncated) {
     return content;
   }

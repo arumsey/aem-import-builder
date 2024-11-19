@@ -10,7 +10,9 @@
  * governing permissions and limitations under the License.
  */
 
-export const IGNORE_ELEMENTS = [
+import { endpointMap, EndpointEnvironment, EndpointConfig } from './endpoints.js';
+
+const IGNORE_ELEMENTS = [
   'style',
   'source',
   'script',
@@ -18,3 +20,11 @@ export const IGNORE_ELEMENTS = [
   'iframe',
   'link',
 ];
+
+export {
+  IGNORE_ELEMENTS,
+  endpointMap,
+  EndpointEnvironment,
+  EndpointConfig,
+}
+
