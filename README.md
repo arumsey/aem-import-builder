@@ -11,7 +11,12 @@ Visit the [aem-import-helper](https://github.com/adobe/aem-import-helper/blob/ma
 ### Import Builder Factory
 
 The `ImportBuilderFactory` is responsible for managing authentication and emitting events during builder operations.
-The `baseUrl` option must be a URL containing a `/tools/importer` path where templates can be loaded from.
+
+**Options**
+
+- `baseUrl`: URL containing a `/tools/importer` path.
+- `apiKey`: Import API key.
+- `environment`: Assistant service environment (stage or prod).
 
 The `create` method of the factory returns an `ImportBuilder` instance that can be used to build an AEM import script.
 An `ImportBuilder` must be given a sample HTML document and screenshot to operate against. A set of existing import rules
@@ -23,7 +28,7 @@ import {FactoryOptions} from './importBuilderFactory';
 
 const options: FactoryOptions = {
   baseUrl: 'https://localhost:3001',
-  apiKey: 'spacecat api key',
+  apiKey: 'import-api-key',
   environment: 'prod',
 };
 
@@ -42,6 +47,11 @@ factory.on('complete', () => {
 // page is array containing an HTML document string and a Base64 encoded screenshot string
 const builder = factory.create({mode: 'script', rules, page});
 ```
+
+**Templates**
+
+The `ImportBuilderFactory` uses templates to generate import scripts and AI prompts. The [templates](./src/templates) folder must be copied to a `/tools/importer`
+path that is accessible by the `baseUrl` provided to the factory.
 
 ### Import Builder
 
