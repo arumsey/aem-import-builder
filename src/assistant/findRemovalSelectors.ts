@@ -10,7 +10,6 @@
  * governing permissions and limitations under the License.
  */
 
-import TemplateBuilder from '../templateBuilder.js';
 import {
   AssistantPayload,
   AssistantResponse,
@@ -24,9 +23,8 @@ function extractStrings(obj: Record<string, string>): string[] {
   );
 }
 
-async function findRemovalSelectors(content: string, pattern: string): Promise<string[]> {
-  const prompt = await TemplateBuilder.merge('/templates/prompt-elements.hbs', { pattern, content });
-  const payload: AssistantPayload = { command: 'findRemovalSelectors', prompt };
+async function findRemovalSelectors(content: string, prompt: string): Promise<string[]> {
+  const payload: AssistantPayload = { command: 'findRemovalSelectors', prompt, htmlContent: content };
   const response = await fetchPromptCompletion<AssistantResponse>(payload);
   return reduceAssistantResponse(response, [] as string[], (content, selectors) => {
     const result = JSON.parse(content);

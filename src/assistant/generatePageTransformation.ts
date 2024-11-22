@@ -10,7 +10,6 @@
  * governing permissions and limitations under the License.
  */
 
-import TemplateBuilder from '../templateBuilder.js';
 import {
   AssistantPayload,
   AssistantResponse,
@@ -18,12 +17,15 @@ import {
   reduceAssistantScriptResponse,
 } from '../service/assistantService.js';
 
-async function generatePageTransformation(content: string, pattern: string): Promise<string[]> {
-  if (!pattern) {
+async function generatePageTransformation(content: string, prompt: string): Promise<string[]> {
+  if (!prompt) {
     return [];
   }
-  const prompt = await TemplateBuilder.merge('/templates/prompt-transform.hbs', { pattern, content });
-  const payload: AssistantPayload = { command: 'generatePageTransformation', prompt };
+  const payload: AssistantPayload = {
+    command: 'generatePageTransformation',
+    prompt,
+    htmlContent: content,
+  };
   const response = await fetchPromptCompletion<AssistantResponse>(payload);
   return reduceAssistantScriptResponse(response);
 }

@@ -10,7 +10,6 @@
  * governing permissions and limitations under the License.
  */
 
-import TemplateBuilder from '../templateBuilder.js';
 import {
   AssistantPayload,
   AssistantResponse,
@@ -18,14 +17,18 @@ import {
   reduceAssistantScriptResponse,
 } from '../service/assistantService.js';
 
-async function findBlockCells(content: string, screenshot: string, selectors: string[], pattern: string): Promise<string[]> {
-  if (!selectors.length || !pattern || !screenshot) {
+async function findBlockCells(content: string, screenshot: string, selectors: string[], prompt: string): Promise<string[]> {
+  if (!selectors.length || !prompt || !screenshot) {
     return [];
   }
   // Just use first selector for now - TODO: handle multiple selectors in the future
   const [selector] = selectors;
-  const prompt = await TemplateBuilder.merge('/templates/prompt-cells.hbs', { selector, pattern, content });
-  const payload: AssistantPayload = { command: 'findBlockCells', prompt };
+  const payload: AssistantPayload = {
+    command: 'findBlockCells',
+    prompt,
+    htmlContent: content,
+    selector,
+  };
   const response = await fetchPromptCompletion<AssistantResponse>(payload);
   return reduceAssistantScriptResponse(response);
 }
