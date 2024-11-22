@@ -1,7 +1,7 @@
 {
   "name": "aem-import-builder",
   "description": "Powerful AI capabilities to simplify AEM import script development.",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "keywords": [
     "aem",
     "import",
