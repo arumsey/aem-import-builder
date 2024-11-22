@@ -22,9 +22,9 @@ export type AssistantCommands =
 export type AssistantPayload = {
   command: AssistantCommands;
   prompt?: string;
-  options?: {
-    imageUrl: string;
-  }
+  imageUrl?: string;
+  htmlContent?: string;
+  selector?: string;
 };
 
 export type AssistantMessage = {
@@ -46,7 +46,7 @@ export const jsonRegex = /```json([\s\S]*?)```/g;
 
 export const fetchPromptCompletion = async <T>(payload: AssistantPayload): Promise<T> => {
   const { spacecatUrl, apiKey } = builderConfig.getConfig();
-  const assistant = await fetch(`${spacecatUrl}/tools/import/assistant/prompt`, {
+  const response = await fetch(`${spacecatUrl}/tools/import/assistant/prompt`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -55,7 +55,11 @@ export const fetchPromptCompletion = async <T>(payload: AssistantPayload): Promi
     },
     body: JSON.stringify(payload),
   });
-  return await assistant.json() as T;
+  if (!response.ok) {
+    const errorMsg = response.headers.get('x-error') || response.statusText;
+    throw new Error(`Import assistant request failed: ${response.status}: ${errorMsg}`);
+  }
+  return await response.json() as T;
 };
 
 export const reduceAssistantResponse = <T = unknown>(

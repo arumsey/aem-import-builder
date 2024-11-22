@@ -11,7 +11,6 @@
  */
 
 import { BlockRule } from 'aem-import-rules';
-import TemplateBuilder from '../templateBuilder.js';
 import {
   AssistantPayload,
   AssistantResponse,
@@ -20,12 +19,16 @@ import {
   jsonRegex,
 } from '../service/assistantService.js';
 
-async function findBlockSelectors(content: string, screenshot: string, pattern: string): Promise<Partial<BlockRule>[]> {
-  if (!pattern || !screenshot) {
+async function findBlockSelectors(content: string, screenshot: string, prompt: string): Promise<Partial<BlockRule>[]> {
+  if (!prompt || !screenshot) {
     return [];
   }
-  const prompt = await TemplateBuilder.merge('/templates/prompt-block.hbs', { pattern, content });
-  const payload: AssistantPayload = { command: 'findBlockSelectors', prompt, options: { imageUrl: `data:image/png;base64,${screenshot}` } };
+  const payload: AssistantPayload = {
+    command: 'findBlockSelectors',
+    prompt,
+    htmlContent: content,
+    imageUrl: `data:image/png;base64,${screenshot}`,
+  };
   const response = await fetchPromptCompletion<AssistantResponse>(payload);
   // extract selectors from response
   return reduceAssistantResponse(response, [{ selectors: [] }] as Partial<BlockRule>[], (content, rules) => {
