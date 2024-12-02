@@ -13,7 +13,11 @@
 import { builderConfig } from '../config.js';
 import { AssistantResponse } from './assistantService.js';
 
-export const IMS = {
+/**
+ * The Firefall Service is only meant for experimentation purposes
+ * which is why a hard coded client if and IMS Org are used.
+ */
+const IMS = {
   CLIENT_ID: 'aem-import-as-a-service',
   ORG_ID: '154340995B76EEF60A494007@AdobeOrg',
   ACCESS_TOKEN: '',
