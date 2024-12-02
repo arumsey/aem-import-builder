@@ -14,8 +14,8 @@ import {
   AssistantPayload,
   AssistantResponse,
   fetchPromptCompletion,
-  reduceAssistantScriptResponse,
 } from '../service/assistantService.js';
+import { reduceAssistantScriptResponse } from '../service/firefallService.js';
 
 async function findBlockCells(content: string, screenshot: string, selectors: string[], prompt: string): Promise<string[]> {
   if (!selectors.length || !prompt || !screenshot) {

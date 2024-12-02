@@ -61,28 +61,3 @@ export const fetchPromptCompletion = async <T>(payload: AssistantPayload): Promi
   }
   return await response.json() as T;
 };
-
-export const reduceAssistantResponse = <T = unknown>(
-  response: AssistantResponse,
-  initialValue: T,
-  messageParser: (content: string, value: T) => T = (content) => content as T,
-): T => {
-  const { choices = [] } = response;
-  return choices.reduce((value, { finish_reason, message }): T => {
-    if (finish_reason === 'stop' && typeof message.content === 'string') {
-      value = messageParser(message.content, value) || value;
-    }
-    return value;
-  }, initialValue);
-}
-
-export const reduceAssistantScriptResponse = (response: AssistantResponse) => {
-  return reduceAssistantResponse(response, [] as string[], (content, scripts) => {
-    const matches = content.matchAll(javascriptRegex);
-    [...matches].forEach((match) => {
-      const [, javascript ] = match;
-      scripts.push(javascript);
-    });
-    return scripts;
-  });
-}

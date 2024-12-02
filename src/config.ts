@@ -19,6 +19,8 @@ const config: BuilderConfig = {
   baseUrl: '',
   apiKey: '',
   environment: 'prod',
+  authCode: '',
+  clientSecret: '',
 };
 
 export const builderConfig = {

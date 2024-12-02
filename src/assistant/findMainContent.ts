@@ -15,8 +15,8 @@ import {
   AssistantPayload,
   AssistantResponse,
   fetchPromptCompletion,
-  reduceAssistantResponse,
 } from '../service/assistantService.js';
+import { reduceAssistantResponse } from '../service/firefallService.js';
 
 async function findMainContent(content: string): Promise<string> {
   const payload: AssistantPayload = { command: 'findMainContent', htmlContent: content };

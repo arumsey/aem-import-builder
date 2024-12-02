@@ -27,6 +27,8 @@ import { EndpointEnvironment } from './constants/index.js';
  * environment: 'dev' or 'prod'.
  */
 export type ServiceOptions = {
+  authCode?: string;
+  clientSecret?: string;
   apiKey: string;
   environment: EndpointEnvironment;
 };

@@ -14,8 +14,8 @@ import {
   AssistantPayload,
   AssistantResponse,
   fetchPromptCompletion,
-  reduceAssistantResponse,
 } from '../service/assistantService.js';
+import { reduceAssistantResponse } from '../service/firefallService.js';
 
 function extractStrings(obj: Record<string, string>): string[] {
   return Object.values(obj).flatMap((value) =>

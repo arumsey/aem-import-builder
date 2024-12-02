@@ -14,8 +14,8 @@ import {
   AssistantPayload,
   AssistantResponse,
   fetchPromptCompletion,
-  reduceAssistantScriptResponse,
 } from '../service/assistantService.js';
+import { reduceAssistantScriptResponse } from '../service/firefallService.js';
 
 async function generatePageTransformation(content: string, prompt: string): Promise<string[]> {
   if (!prompt) {

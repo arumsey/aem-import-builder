@@ -15,9 +15,9 @@ import {
   AssistantPayload,
   AssistantResponse,
   fetchPromptCompletion,
-  reduceAssistantResponse,
   jsonRegex,
 } from '../service/assistantService.js';
+import { reduceAssistantResponse } from '../service/firefallService.js';
 
 async function findBlockSelectors(content: string, screenshot: string, prompt: string): Promise<Partial<BlockRule>[]> {
   if (!prompt || !screenshot) {
